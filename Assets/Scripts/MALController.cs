@@ -1,8 +1,8 @@
-using System;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.UI;   //
+using System.Text.Json;
 
 public class MALCOntroller : MonoBehaviour
 {
@@ -10,32 +10,44 @@ public class MALCOntroller : MonoBehaviour
     [SerializeField] private string clientSecret; // Ensure this matches the Client Secret registered with MAL (https://myanimelist.net/apiconfig)
     [SerializeField] private string redirectUri; // Ensure this matches the redirect URI registered with MAL (https://myanimelist.net/apiconfig)
     [SerializeField] private string state; // A unique state value for CSRF protection (the value of this string is arbitrary)
+    private readonly string baseUrl = "https://api.myanimelist.net/v2/";
     private PKCEHelper pkceHelper; // For handling PKCE challenge and verifier
+    private TokenResponse tokenResponse;
 
     //
     [SerializeField] private string insertAuthCodeHere;
     [SerializeField] private Button button;
+    [SerializeField] private Button button2;
     //
-
-    private void LogDebugInformation(string authorizationCode)
-    {
-        Debug.Log($"[OAuth Debug] Client ID: {clientId}");
-        // Be cautious about logging the clientSecret, especially in production or shared environments
-        Debug.Log($"[OAuth Debug] Client Secret: {clientSecret}");
-        Debug.Log($"[OAuth Debug] Redirect URI: {redirectUri}");
-        Debug.Log($"[OAuth Debug] Authorization Code: {authorizationCode}");
-        Debug.Log($"[OAuth Debug] Code Verifier: {pkceHelper.CodeVerifier}");
-        Debug.Log($"[OAuth Debug] Code Challenge: {pkceHelper.CodeChallenge}");
-    }
 
     private void Start()
     {
         pkceHelper = new PKCEHelper();
         //
         button.onClick.AddListener(() => ExchangeAuthorizationCodeForToken(insertAuthCodeHere));
+        button2.onClick.AddListener(() => StartCoroutine(GetUsersAnimeList()));
         //
 
         StartAuthorizationRequest();
+    }
+
+    private IEnumerator GetUsersAnimeList(string userName = "@me")
+    {
+        string url = $"{baseUrl}users/{userName}/animelist";
+        UnityWebRequest request = UnityWebRequest.Get(url);
+        request.SetRequestHeader("Authorization", $"Bearer {tokenResponse.access_token}");
+
+        yield return request.SendWebRequest();
+
+        if (request.result == UnityWebRequest.Result.Success)
+        {
+            //Debug.Log(request.downloadHandler.text);
+            DeserializeAnimeList(request.downloadHandler.text);
+        }
+        else
+        {
+            Debug.LogError($"Failed to fetch data: {request.error}");
+        }
     }
 
     public void StartAuthorizationRequest()
@@ -68,13 +80,12 @@ public class MALCOntroller : MonoBehaviour
         if (request.result == UnityWebRequest.Result.Success)
         {
             Debug.Log("Token exchange successful: " + request.downloadHandler.text);
-            // Parse and store the access token for future API calls
+            tokenResponse = JsonUtility.FromJson<TokenResponse>(request.downloadHandler.text);
         }
         else
         {
-            // If the request failed, log the error and the response body for more details
             Debug.LogError("Token exchange failed: " + request.error);
-            // Check if there's a response body and log it
+
             if (request.downloadHandler != null)
             {
                 string responseBody = request.downloadHandler.text;
@@ -84,39 +95,27 @@ public class MALCOntroller : MonoBehaviour
     }
 
     // Call this method with the authorization code to start the token exchange process
-    public void ExchangeAuthorizationCodeForToken(string authorizationCode)
+    private void ExchangeAuthorizationCodeForToken(string authorizationCode)
     {
-        LogDebugInformation(authorizationCode);
-
         StartCoroutine(ExchangeCodeForTokenCoroutine(authorizationCode));
     }
-}
 
-public class PKCEHelper
-{
-    public string CodeVerifier { get; private set; }
-    public string CodeChallenge { get; private set; }
-
-    public PKCEHelper()
+    private void DeserializeAnimeList(string jsonString)
     {
-        CodeVerifier = GenerateCodeVerifier();
-        // For Plain method, the CodeChallenge is the same as the CodeVerifier
-        CodeChallenge = CodeVerifier; // Adjusted for Plain method
-    }
-
-    private string GenerateCodeVerifier()
-    {
-        var bytes = new byte[32]; // 256 bits
-        using (var rng = new System.Security.Cryptography.RNGCryptoServiceProvider())
+        var options = new JsonSerializerOptions
         {
-            rng.GetBytes(bytes);
-        }
-        return Convert.ToBase64String(bytes)
-            .TrimEnd('=')
-            .Replace('+', '-')
-            .Replace('/', '_');
-    }
+            PropertyNameCaseInsensitive = true // Helps with case sensitivity
+        };
 
-    // No need to hash the code_verifier for the Plain method, so this method is adjusted
-    // Removed GenerateCodeChallenge method since it's not needed for Plain method
+        AnimeListResponse animeListResponse = JsonSerializer.Deserialize<AnimeListResponse>(jsonString, options);
+
+        // Example usage
+        if (animeListResponse != null && animeListResponse.Data != null)
+        {
+            foreach (var animeData in animeListResponse.Data)
+            {
+                Debug.Log($"ID: {animeData.Node.Id}, Title: {animeData.Node.Title}");
+            }
+        }
+    }
 }
