@@ -1,57 +1,58 @@
-using System.Collections;
-using UnityEngine;
-using UnityEngine.Networking;
-using UnityEngine.UI;
+using System;
+using System.Net.Http;
 using System.Text.Json;
+using System.Threading.Tasks;
+using UnityEngine;
+using UnityEngine.UI;
 
 public class MALController : MonoBehaviour
 {
     private readonly string baseUrl = "https://api.myanimelist.net/v2/";
     private MALAuthenticator malAuthenticator;
+    private readonly HttpClient httpClient = new();
 
-    //
     [SerializeField] private Button button2;
-    //
 
     private void Start()
     {
         malAuthenticator = GetComponent<MALAuthenticator>();
 
-        button2.onClick.AddListener(() => StartCoroutine(GetUsersAnimeList()));
+        button2.onClick.AddListener(async () => await GetUsersAnimeListAsync());
     }
 
-    private IEnumerator GetUsersAnimeList(string userName = "@me")
+    private async Task GetUsersAnimeListAsync(string userName = "@me")
     {
         string url = $"{baseUrl}users/{userName}/animelist";
-        UnityWebRequest request = UnityWebRequest.Get(url);
-        request.SetRequestHeader("Authorization", $"Bearer {malAuthenticator.TokenResponse.access_token}");
+        httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", malAuthenticator.TokenResponse.access_token);
 
-        yield return request.SendWebRequest();
-
-        if (request.result == UnityWebRequest.Result.Success)
+        try
         {
-            //Debug.Log(request.downloadHandler.text);
-            DeserializeAnimeList(request.downloadHandler.text);
+            HttpResponseMessage response = await httpClient.GetAsync(url);
+
+            if (response.IsSuccessStatusCode)
+            {
+                string jsonString = await response.Content.ReadAsStringAsync();
+                DeserializeAnimeList(jsonString);
+            }
+            else
+            {
+                Debug.LogError($"Failed to fetch data: {response.StatusCode}");
+            }
         }
-        else
+        catch (Exception e)
         {
-            Debug.LogError($"Failed to fetch data: {request.error}");
+            Debug.LogError($"Exception occurred: {e.Message}");
         }
     }
 
     private void DeserializeAnimeList(string jsonString)
     {
-        var options = new JsonSerializerOptions
-        {
-            PropertyNameCaseInsensitive = true // Helps with case sensitivity
-        };
-
+        JsonSerializerOptions options = new() { PropertyNameCaseInsensitive = true };
         AnimeListResponse animeListResponse = JsonSerializer.Deserialize<AnimeListResponse>(jsonString, options);
 
-        // Example usage
         if (animeListResponse != null && animeListResponse.Data != null)
         {
-            foreach (var animeData in animeListResponse.Data)
+            foreach (AnimeData animeData in animeListResponse.Data)
             {
                 Debug.Log($"ID: {animeData.Node.Id}, Title: {animeData.Node.Title}");
             }
