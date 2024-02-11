@@ -2,16 +2,18 @@ using System;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class MALController : MonoBehaviour
 {
     private readonly string baseUrl = "https://api.myanimelist.net/v2/";
-    private MALAuthenticator malAuthenticator;
     private readonly HttpClient httpClient = new();
+    private MALAuthenticator malAuthenticator;
 
     [SerializeField] private Button button2;
+    [SerializeField] private TMP_Text anime;
 
     private void Start()
     {
@@ -55,6 +57,7 @@ public class MALController : MonoBehaviour
             foreach (AnimeData animeData in animeListResponse.Data)
             {
                 Debug.Log($"ID: {animeData.Node.Id}, Title: {animeData.Node.Title}");
+                anime.text = $"ID: {animeData.Node.Id}, Title: {animeData.Node.Title}";
             }
         }
     }
