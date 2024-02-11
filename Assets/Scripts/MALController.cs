@@ -2,29 +2,47 @@ using System;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.Networking;
+using UnityEngine.UI;   //
 
 public class MALCOntroller : MonoBehaviour
 {
-    [SerializeField]
-    private string clientId = "1d5580f5cd0d5d6d142bb0f777fc3ff3"; // Set this in the Unity Inspector or through your application's initialization process
-    [SerializeField]
-    private string clientSecret = "2f13274dfba2bdef15de7ad49d79d18d0d0da6126751d0a144749c129ff26992"; // Use only if necessary and secure
-    private string redirectUri = "https://github.com/colewilshire/MAL-To-Spotify"; // Ensure this matches the redirect URI registered with MyAnimeList
-    private string state = "THIS_IS_ARBITRARY"; // A unique state value for CSRF protection
+    [SerializeField] private string clientId; // Ensure this matches the Client ID registered with MAL (https://myanimelist.net/apiconfig)
+    [SerializeField] private string clientSecret; // Ensure this matches the Client Secret registered with MAL (https://myanimelist.net/apiconfig)
+    [SerializeField] private string redirectUri; // Ensure this matches the redirect URI registered with MAL (https://myanimelist.net/apiconfig)
+    [SerializeField] private string state; // A unique state value for CSRF protection (the value of this string is arbitrary)
     private PKCEHelper pkceHelper; // For handling PKCE challenge and verifier
 
-    void Start()
+    //
+    [SerializeField] private string insertAuthCodeHere;
+    [SerializeField] private Button button;
+    //
+
+    private void LogDebugInformation(string authorizationCode)
     {
-        // Initialize PKCE helper and start the authorization process
+        Debug.Log($"[OAuth Debug] Client ID: {clientId}");
+        // Be cautious about logging the clientSecret, especially in production or shared environments
+        Debug.Log($"[OAuth Debug] Client Secret: {clientSecret}");
+        Debug.Log($"[OAuth Debug] Redirect URI: {redirectUri}");
+        Debug.Log($"[OAuth Debug] Authorization Code: {authorizationCode}");
+        Debug.Log($"[OAuth Debug] Code Verifier: {pkceHelper.CodeVerifier}");
+        Debug.Log($"[OAuth Debug] Code Challenge: {pkceHelper.CodeChallenge}");
+    }
+
+    private void Start()
+    {
         pkceHelper = new PKCEHelper();
+        //
+        button.onClick.AddListener(() => ExchangeAuthorizationCodeForToken(insertAuthCodeHere));
+        //
+
         StartAuthorizationRequest();
     }
 
     public void StartAuthorizationRequest()
     {
         // Generate the authorization URL with PKCE and state parameters
-        string scopes = "user:read"; // Specify the required scopes here
-        string authUrl = $"https://myanimelist.net/v1/oauth2/authorize?response_type=code&client_id={clientId}&redirect_uri={redirectUri}&state={state}&scope={scopes}&code_challenge={pkceHelper.CodeChallenge}&code_challenge_method=S256";
+        string scopes = "user:read";
+        string authUrl = $"https://myanimelist.net/v1/oauth2/authorize?response_type=code&client_id={clientId}&redirect_uri={redirectUri}&state={state}&scope={scopes}&code_challenge={pkceHelper.CodeChallenge}&code_challenge_method=plain";
 
         // Open the authorization URL in the user's web browser
         Application.OpenURL(authUrl);
@@ -32,11 +50,13 @@ public class MALCOntroller : MonoBehaviour
 
     public IEnumerator ExchangeCodeForTokenCoroutine(string authorizationCode)
     {
+        Debug.Log(authorizationCode);
+
         // Exchange the authorization code for an access token
         string tokenUrl = "https://myanimelist.net/v1/oauth2/token";
-        WWWForm form = new WWWForm();
+        WWWForm form = new();
         form.AddField("client_id", clientId);
-        form.AddField("client_secret", clientSecret); // Handle with care
+        form.AddField("client_secret", clientSecret);
         form.AddField("code", authorizationCode);
         form.AddField("code_verifier", pkceHelper.CodeVerifier);
         form.AddField("redirect_uri", redirectUri);
@@ -52,13 +72,22 @@ public class MALCOntroller : MonoBehaviour
         }
         else
         {
+            // If the request failed, log the error and the response body for more details
             Debug.LogError("Token exchange failed: " + request.error);
+            // Check if there's a response body and log it
+            if (request.downloadHandler != null)
+            {
+                string responseBody = request.downloadHandler.text;
+                Debug.LogError("Response Body: " + responseBody);
+            }
         }
     }
 
     // Call this method with the authorization code to start the token exchange process
     public void ExchangeAuthorizationCodeForToken(string authorizationCode)
     {
+        LogDebugInformation(authorizationCode);
+
         StartCoroutine(ExchangeCodeForTokenCoroutine(authorizationCode));
     }
 }
@@ -71,7 +100,8 @@ public class PKCEHelper
     public PKCEHelper()
     {
         CodeVerifier = GenerateCodeVerifier();
-        CodeChallenge = GenerateCodeChallenge(CodeVerifier);
+        // For Plain method, the CodeChallenge is the same as the CodeVerifier
+        CodeChallenge = CodeVerifier; // Adjusted for Plain method
     }
 
     private string GenerateCodeVerifier()
@@ -87,15 +117,6 @@ public class PKCEHelper
             .Replace('/', '_');
     }
 
-    private string GenerateCodeChallenge(string codeVerifier)
-    {
-        using (var sha256 = System.Security.Cryptography.SHA256.Create())
-        {
-            var hash = sha256.ComputeHash(System.Text.Encoding.UTF8.GetBytes(codeVerifier));
-            return Convert.ToBase64String(hash)
-                .TrimEnd('=')
-                .Replace('+', '-')
-                .Replace('/', '_');
-        }
-    }
+    // No need to hash the code_verifier for the Plain method, so this method is adjusted
+    // Removed GenerateCodeChallenge method since it's not needed for Plain method
 }
