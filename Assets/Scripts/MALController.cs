@@ -1,4 +1,6 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -14,85 +16,53 @@ public class MALController : MonoBehaviour
 
     [SerializeField] private Button button2;
     [SerializeField] private TMP_Text anime;
+    public AnimeDetails animeDetails;
 
-    public async Task GetAnimeDetailsAsync(int animeId)
-    {
-        string fields = "opening_themes,ending_themes";
-        string url = $"{baseUrl}anime/{animeId}?fields={fields}";
-        httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", malAuthenticator.TokenResponse.access_token);
-
-        try
-        {
-            HttpResponseMessage response = await httpClient.GetAsync(url);
-
-            if (response.IsSuccessStatusCode)
-            {
-                string jsonString = await response.Content.ReadAsStringAsync();
-                Debug.Log(jsonString);
-                //AnimeDetails animeDetails = JsonSerializer.Deserialize<AnimeDetails>(jsonString);
-
-                // if (animeDetails != null)
-                // {
-                //     Debug.Log($"ID: {animeDetails.Id}, Title: {animeDetails.Title}");
-                //     animeDetailsText.text = $"ID: {animeDetails.Id}, Title: {animeDetails.Title}";
-                // }
-            }
-            else
-            {
-                Debug.LogError($"Failed to fetch anime details: {response.StatusCode}");
-            }
-        }
-        catch (Exception e)
-        {
-            Debug.LogError($"Exception occurred while fetching anime details: {e.Message}");
-        }
-    }
+    public MALClient MALClient;
 
     private void Start()
     {
         malAuthenticator = GetComponent<MALAuthenticator>();
 
-        //button2.onClick.AddListener(async () => await GetUsersAnimeListAsync());
-        button2.onClick.AddListener(async () => await GetAnimeDetailsAsync(52034));
+        button2.onClick.AddListener(Test);
     }
 
-    private async Task GetUsersAnimeListAsync(string userName = "@me")
+    private async void Test()
     {
-        string url = $"{baseUrl}users/{userName}/animelist";
-        httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", malAuthenticator.TokenResponse.access_token);
-
-        try
-        {
-            HttpResponseMessage response = await httpClient.GetAsync(url);
-
-            if (response.IsSuccessStatusCode)
-            {
-                string jsonString = await response.Content.ReadAsStringAsync();
-                DeserializeAnimeList(jsonString);
-            }
-            else
-            {
-                Debug.LogError($"Failed to fetch data: {response.StatusCode}");
-            }
-        }
-        catch (Exception e)
-        {
-            Debug.LogError($"Exception occurred: {e.Message}");
-        }
+        await TestGetAnimeListAsync();
+        await TestGetAnimeDetailsAsync(1);
+        await TestGetAnimeRankingAsync();
+        await TestGetSeasonalAnimeAsync(2021, "spring");
+        await TestGetSuggestedAnimeAsync();
     }
 
-    private void DeserializeAnimeList(string jsonString)
+    private async Task TestGetAnimeListAsync()
     {
-        JsonSerializerOptions options = new() { PropertyNameCaseInsensitive = true };
-        AnimeListResponse animeListResponse = JsonSerializer.Deserialize<AnimeListResponse>(jsonString, options);
+        var animeList = await MALClient.GetAnimeListAsync("@me");
+        Debug.Log($"First anime in list: {animeList.Data[0].Node.Title}");
+    }
 
-        if (animeListResponse != null && animeListResponse.Data != null)
-        {
-            foreach (AnimeData animeData in animeListResponse.Data)
-            {
-                Debug.Log($"ID: {animeData.Node.Id}, Title: {animeData.Node.Title}");
-                anime.text = $"ID: {animeData.Node.Id}, Title: {animeData.Node.Title}";
-            }
-        }
+    private async Task TestGetAnimeDetailsAsync(int animeId)
+    {
+        var animeDetails = await MALClient.GetAnimeDetailsAsync(animeId);
+        Debug.Log($"Anime title: {animeDetails.Title}, Synopsis: {animeDetails.Synopsis}");
+    }
+
+    private async Task TestGetAnimeRankingAsync()
+    {
+        var animeRanking = await MALClient.GetAnimeRankingAsync();
+        Debug.Log($"Top ranked anime: {animeRanking.Data[0].Node.Title}");
+    }
+
+    private async Task TestGetSeasonalAnimeAsync(int year, string season)
+    {
+        var seasonalAnime = await MALClient.GetSeasonalAnimeAsync(year, season);
+        Debug.Log($"Seasonal anime: {seasonalAnime.Data[0].Node.Title}");
+    }
+
+    private async Task TestGetSuggestedAnimeAsync()
+    {
+        var suggestedAnime = await MALClient.GetSuggestedAnimeAsync();
+        Debug.Log($"Suggested anime: {suggestedAnime.Data[0].Node.Title}");
     }
 }

@@ -1347,13 +1347,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 79d11ac1925b52340b8c3607eb2fc0f5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  clientId: 1d5580f5cd0d5d6d142bb0f777fc3ff3
-  clientSecret: 2f13274dfba2bdef15de7ad49d79d18d0d0da6126751d0a144749c129ff26992
-  redirectUri: https://html-classic.itch.zone/html/9700264/MAL-To-Spotify/index.html
-  state: THIS_IS_ARBITRARY
-  insertAuthCodeHere: 
+  clientId: cd465bf5e8687832f04de69a0df0f99e
   button: {fileID: 1311896625}
-  code: {fileID: 71503890}
+  codeText: {fileID: 71503890}
+  insertAuthCodeHere: 
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

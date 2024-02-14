@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Net.Http;
 using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
@@ -9,68 +6,37 @@ using UnityEngine.UI;
 public class MALAuthenticator : MonoBehaviour
 {
     [SerializeField] private string clientId;
-    [SerializeField] private string clientSecret;
-    [SerializeField] private string redirectUri;
-    private PKCEHelper pkceHelper;
-    public TokenResponse TokenResponse { get; private set; }
-
-    [SerializeField] private string insertAuthCodeHere;
     [SerializeField] private Button button;
-    [SerializeField] private TMP_Text code;
+    [SerializeField] private TMP_Text codeText; // Make sure to assign this in the inspector.
+    [SerializeField] private string insertAuthCodeHere;
 
-    private readonly HttpClient httpClient = new();
+    public Authenticator Authenticator;
 
     private void Start()
     {
-        pkceHelper = new PKCEHelper();
+        Authenticator = new(clientId);
 
-        button.onClick.AddListener(async () => await ExchangeAuthorizationCodeForToken(insertAuthCodeHere));
+        button.onClick.AddListener(async () => await ButtonClicked(insertAuthCodeHere));
 
-        StartAuthorizationRequest();
-    }
-
-    private void StartAuthorizationRequest()
-    {
-        string scopes = "user:read";
-        string authUrl = $"https://myanimelist.net/v1/oauth2/authorize?response_type=code&client_id={clientId}&scope={scopes}&code_challenge={pkceHelper.CodeChallenge}&code_challenge_method=plain";
-
+        string authUrl = Authenticator.GetAuthorizationURL();
         Application.OpenURL(authUrl);
     }
 
-    public async Task ExchangeAuthorizationCodeForToken(string authorizationCode)
+    private async Task ButtonClicked(string authorizationCode)
     {
-        Debug.Log($"Authorization Code: {authorizationCode}");
+        //string authUrl = mALAuthenticator.GetAuthorizationURL();
+        //Application.OpenURL(authUrl); // Open the authorization URL in the user's browser.
 
-        string tokenUrl = "https://myanimelist.net/v1/oauth2/token";
-        FormUrlEncodedContent content = new(new[]
+        // Wait for the user to enter the authorization code manually or via some other mechanism
+        // For demonstration purposes, let's assume 'insertAuthCodeHere' is obtained somehow.
+        //string insertAuthCodeHere = await Task.FromResult("YourMethodToGetTheCode()");
+
+        await Authenticator.ExchangeAuthorizationCodeForToken(authorizationCode);
+
+        if (Authenticator.TokenResponse != null)
         {
-            new KeyValuePair<string, string>("client_id", clientId),
-            new KeyValuePair<string, string>("client_secret", clientSecret),
-            new KeyValuePair<string, string>("code", authorizationCode),
-            new KeyValuePair<string, string>("code_verifier", pkceHelper.CodeVerifier),
-            new KeyValuePair<string, string>("grant_type", "authorization_code"),
-        });
-
-        try
-        {
-            HttpResponseMessage response = await httpClient.PostAsync(tokenUrl, content);
-            string responseBody = await response.Content.ReadAsStringAsync();
-
-            if (response.IsSuccessStatusCode)
-            {
-                Debug.Log("Token exchange successful: " + responseBody);
-                TokenResponse = JsonUtility.FromJson<TokenResponse>(responseBody);
-
-                code.text = TokenResponse.access_token;
-            }
-            else
-            {
-                Debug.LogError("Token exchange failed: " + responseBody);
-            }
-        }
-        catch (Exception e)
-        {
-            Debug.LogError($"Exception during token exchange: {e.Message}");
+            codeText.text = $"Access Token: {Authenticator.TokenResponse.AccessToken}";
+            GetComponent<MALController>().MALClient = new MALClient(Authenticator.TokenResponse.AccessToken);
         }
     }
 }
