@@ -15,11 +15,45 @@ public class MALController : MonoBehaviour
     [SerializeField] private Button button2;
     [SerializeField] private TMP_Text anime;
 
+    public async Task GetAnimeDetailsAsync(int animeId)
+    {
+        string fields = "opening_themes,ending_themes";
+        string url = $"{baseUrl}anime/{animeId}?fields={fields}";
+        httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", malAuthenticator.TokenResponse.access_token);
+
+        try
+        {
+            HttpResponseMessage response = await httpClient.GetAsync(url);
+
+            if (response.IsSuccessStatusCode)
+            {
+                string jsonString = await response.Content.ReadAsStringAsync();
+                Debug.Log(jsonString);
+                //AnimeDetails animeDetails = JsonSerializer.Deserialize<AnimeDetails>(jsonString);
+
+                // if (animeDetails != null)
+                // {
+                //     Debug.Log($"ID: {animeDetails.Id}, Title: {animeDetails.Title}");
+                //     animeDetailsText.text = $"ID: {animeDetails.Id}, Title: {animeDetails.Title}";
+                // }
+            }
+            else
+            {
+                Debug.LogError($"Failed to fetch anime details: {response.StatusCode}");
+            }
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"Exception occurred while fetching anime details: {e.Message}");
+        }
+    }
+
     private void Start()
     {
         malAuthenticator = GetComponent<MALAuthenticator>();
 
-        button2.onClick.AddListener(async () => await GetUsersAnimeListAsync());
+        //button2.onClick.AddListener(async () => await GetUsersAnimeListAsync());
+        button2.onClick.AddListener(async () => await GetAnimeDetailsAsync(52034));
     }
 
     private async Task GetUsersAnimeListAsync(string userName = "@me")
