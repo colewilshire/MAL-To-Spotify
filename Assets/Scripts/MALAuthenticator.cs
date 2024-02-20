@@ -12,6 +12,19 @@ public class MALAuthenticator : MonoBehaviour
 
     public Authenticator Authenticator;
 
+    public void HandleCode(string code)
+    {
+        // Use the received code as needed
+        if (code != null)
+        {
+            codeText.text = code;
+        }
+        else
+        {
+            codeText.text = "null";
+        }
+    }
+
     private void Start()
     {
         Authenticator = new(clientId);
