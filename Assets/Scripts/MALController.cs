@@ -1,30 +1,20 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Net.Http;
-using System.Text.Json;
 using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
 
 public class MALController : MonoBehaviour
 {
-    private readonly string baseUrl = "https://api.myanimelist.net/v2/";
-    private readonly HttpClient httpClient = new();
-    private MALAuthenticator malAuthenticator;
-
-    [SerializeField] private Button button2;
     [SerializeField] private TMP_Text anime;
+    private MALAuthenticator malAuthenticator;
+    private MALClient malClient;
     public AnimeDetails animeDetails;
 
-    public MALClient MALClient;
-
-    private void Start()
+    private async void Start()
     {
         malAuthenticator = GetComponent<MALAuthenticator>();
 
-        button2.onClick.AddListener(Test);
+        malClient = await malAuthenticator.AuthenticateMALClient();
+        Test();
     }
 
     private async void Test()
@@ -38,31 +28,41 @@ public class MALController : MonoBehaviour
 
     private async Task TestGetAnimeListAsync()
     {
-        var animeList = await MALClient.GetAnimeListAsync("@me");
+        AnimeListResponse animeList = await malClient.GetAnimeListAsync("@me");
+
         Debug.Log($"First anime in list: {animeList.Data[0].Node.Title}");
+        anime.text = $"First anime in list: {animeList.Data[0].Node.Title}";
     }
 
     private async Task TestGetAnimeDetailsAsync(int animeId)
     {
-        var animeDetails = await MALClient.GetAnimeDetailsAsync(animeId);
+        AnimeDetails animeDetails = await malClient.GetAnimeDetailsAsync(animeId);
+
         Debug.Log($"Anime title: {animeDetails.Title}, Synopsis: {animeDetails.Synopsis}");
+        anime.text = $"Anime title: {animeDetails.Title}, Synopsis: {animeDetails.Synopsis}";
     }
 
     private async Task TestGetAnimeRankingAsync()
     {
-        var animeRanking = await MALClient.GetAnimeRankingAsync();
+        AnimeRankingResponse animeRanking = await malClient.GetAnimeRankingAsync();
+
         Debug.Log($"Top ranked anime: {animeRanking.Data[0].Node.Title}");
+        anime.text = $"Top ranked anime: {animeRanking.Data[0].Node.Title}";
     }
 
     private async Task TestGetSeasonalAnimeAsync(int year, string season)
     {
-        var seasonalAnime = await MALClient.GetSeasonalAnimeAsync(year, season);
+        SeasonalAnimeResponse seasonalAnime = await malClient.GetSeasonalAnimeAsync(year, season);
+
         Debug.Log($"Seasonal anime: {seasonalAnime.Data[0].Node.Title}");
+        anime.text = $"Seasonal anime: {seasonalAnime.Data[0].Node.Title}";
     }
 
     private async Task TestGetSuggestedAnimeAsync()
     {
-        var suggestedAnime = await MALClient.GetSuggestedAnimeAsync();
+        AnimeSuggestionResponse suggestedAnime = await malClient.GetSuggestedAnimeAsync();
+
         Debug.Log($"Suggested anime: {suggestedAnime.Data[0].Node.Title}");
+        anime.text = $"Suggested anime: {suggestedAnime.Data[0].Node.Title}";
     }
 }

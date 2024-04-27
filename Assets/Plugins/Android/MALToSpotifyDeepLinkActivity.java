@@ -24,7 +24,7 @@ public class MALToSpotifyDeepLinkActivity extends UnityPlayerActivity {
         Uri uri = intent.getData();
         if (uri != null) {
             String code = uri.getQueryParameter("code");
-            UnityPlayer.UnitySendMessage("MAL Controller", "HandleCode", code);
+            UnityPlayer.UnitySendMessage("MAL Controller", "CreateMALClient", code);    // The first field is the name of the script's GameObject, not the script's name
         }
     }
 }
