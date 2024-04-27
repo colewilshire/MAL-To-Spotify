@@ -7,13 +7,12 @@ public class MALController : MonoBehaviour
     [SerializeField] private TMP_Text anime;
     private MALAuthenticator malAuthenticator;
     private MALClient malClient;
-    public AnimeDetails animeDetails;
 
     private async void Start()
     {
         malAuthenticator = GetComponent<MALAuthenticator>();
-
         malClient = await malAuthenticator.AuthenticateMALClient();
+
         Test();
     }
 

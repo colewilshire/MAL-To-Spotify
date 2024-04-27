@@ -1,23 +1,18 @@
-using System;
 using System.Linq;
 using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Text.Json;
-using UnityEngine;
 
 public class MALClient
 {
     private readonly HttpClient httpClient;
-    private readonly string accessToken;
     private readonly string baseUrl = "https://api.myanimelist.net/v2/";
 
     public MALClient(string accessToken)
     {
-        this.httpClient = new HttpClient();
-        this.accessToken = accessToken;
-        this.httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+        httpClient = new();
+        httpClient.DefaultRequestHeaders.Authorization = new("Bearer", accessToken);
     }
 
     // Get the list of anime for a user
