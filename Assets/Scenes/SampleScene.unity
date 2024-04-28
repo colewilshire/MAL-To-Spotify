@@ -699,6 +699,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 79d11ac1925b52340b8c3607eb2fc0f5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  anime: {fileID: 1677992416}
   clientId: cd465bf5e8687832f04de69a0df0f99e
 --- !u!1660057539 &9223372036854775807
 SceneRoots:

@@ -33,7 +33,6 @@ public class MALClient
         }
     }
 
-
     public async Task<AnimeDetails> GetAnimeDetailsAsync(int animeId, List<AnimeField> fields = null)
     {
         string fieldsQuery = fields != null ? $"fields={string.Join(",", fields.Select(f => f.ToApiString()))}" : "";
@@ -87,7 +86,6 @@ public class MALClient
             throw new HttpRequestException($"Failed to retrieve suggested anime. Status code: {response.StatusCode}");
         }
     }
-
 
     // Get anime ranking
     public async Task<SeasonalAnimeResponse> GetSeasonalAnimeAsync(int year, string season, List<AnimeField> fields = null)

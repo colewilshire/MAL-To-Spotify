@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 
@@ -22,6 +23,7 @@ public class Authenticator
         return $"https://myanimelist.net/v1/oauth2/authorize?response_type=code&client_id={clientId}&scope={scopes}&code_challenge={pkceHelper.CodeChallenge}&code_challenge_method=plain";
     }
 
+    // Source: https://myanimelist.net/apiconfig/references/authorization
     public async Task ExchangeAuthorizationCodeForToken(string authorizationCode)
     {
         string tokenUrl = "https://myanimelist.net/v1/oauth2/token";
@@ -42,6 +44,33 @@ public class Authenticator
         else
         {
             throw new Exception($"Token exchange failed: {response.StatusCode}, {responseBody}");
+        }
+    }
+
+    // Source: https://myanimelist.net/apiconfig/references/authorization
+    public async Task RefreshAccessToken(string refreshToken)
+    {
+        string tokenUrl = "https://myanimelist.net/v1/oauth2/token";
+
+        string credentials = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{clientId}:"));
+        httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", credentials);
+
+        FormUrlEncodedContent content = new(new[]
+        {
+            new KeyValuePair<string, string>("grant_type", "refresh_token"),
+            new KeyValuePair<string, string>("refresh_token", refreshToken),
+        });
+
+        HttpResponseMessage response = await httpClient.PostAsync(tokenUrl, content);
+        string responseBody = await response.Content.ReadAsStringAsync();
+
+        if (response.IsSuccessStatusCode)
+        {
+            TokenResponse = JsonSerializer.Deserialize<TokenResponse>(responseBody);
+        }
+        else
+        {
+            throw new Exception($"Refresh token exchange failed: {response.StatusCode}, {responseBody}");
         }
     }
 }
