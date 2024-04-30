@@ -104,4 +104,22 @@ public class MALClient
             throw new HttpRequestException($"Failed to retrieve seasonal anime. Status code: {response.StatusCode}");
         }
     }
+
+    // Get logged in user's user info
+    public async Task<UserInfoResponse> GetMyUserInfoAsync(List<UserInfoField> fields = null)
+    {
+        string fieldsQuery = fields != null ? $"fields={string.Join(",", fields.Select(f => f.ToApiString()))}" : "";
+        string url = $"{baseUrl}users/@me?{fieldsQuery}";
+
+        HttpResponseMessage response = await httpClient.GetAsync(url);
+        if (response.IsSuccessStatusCode)
+        {
+            string jsonResponse = await response.Content.ReadAsStringAsync();
+            return JsonSerializer.Deserialize<UserInfoResponse>(jsonResponse, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        }
+        else
+        {
+            throw new HttpRequestException($"Failed to retrieve user information. Status code: {response.StatusCode}");
+        }
+    }
 }

@@ -132,28 +132,6 @@ public class Theme
     public string Text { get; set; }
 }
 
-// public class AnimeRankingNode
-// {
-//     public Node Node { get; set; }
-//     public Ranking Ranking { get; set; }
-// }
-
-// public class Ranking
-// {
-//     public int Rank { get; set; }
-// }
-
-// public class AnimeListResponse
-// {
-//     public List<AnimeRankingNode> Data { get; set; }
-//     public Paging Paging { get; set; }
-// }
-
-// public class Paging
-// {
-//     public string Next { get; set; }
-// }
-
 public class AnimeListResponse
 {
     public List<AnimeListNode> Data { get; set; }
@@ -196,7 +174,6 @@ public class Ranking
 public class AnimeSuggestionResponse
 {
     public List<AnimeListNode> Data { get; set; }
-    // Paging might not be needed if the API doesn't support pagination for suggestions.
 }
 
 public class SeasonalAnimeResponse

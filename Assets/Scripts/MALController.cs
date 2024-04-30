@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
+using System.Collections.Generic;
 
 public class MALController : MonoBehaviour
 {
@@ -13,7 +14,9 @@ public class MALController : MonoBehaviour
         malAuthenticator = GetComponent<MALAuthenticator>();
         malClient = await malAuthenticator.AuthenticateMALClient();
 
-        Test();
+        //Test();
+        await TestGetAnimeDetailsAsync(52991);
+        //await TestGetMyUserInfoAsync();
     }
 
     private async void Test()
@@ -30,16 +33,29 @@ public class MALController : MonoBehaviour
         AnimeListResponse animeList = await malClient.GetAnimeListAsync("@me");
 
         Debug.Log($"First anime in list: {animeList.Data[0].Node.Title}");
+        //anime.text = $"First anime in list: {animeList.Data[0].Node.Title}";
         anime.text = $"First anime in list: {animeList.Data[0].Node.Title}";
     }
 
+    // private async Task TestGetAnimeDetailsAsync(int animeId)
+    // {
+    //     AnimeDetails animeDetails = await malClient.GetAnimeDetailsAsync(animeId);
+
+    //     Debug.Log($"Anime title: {animeDetails.Title}, Synopsis: {animeDetails.Synopsis}");
+    //     anime.text = $"Anime title: {animeDetails.Title}, Synopsis: {animeDetails.Synopsis}";
+    // }
+
     private async Task TestGetAnimeDetailsAsync(int animeId)
     {
-        AnimeDetails animeDetails = await malClient.GetAnimeDetailsAsync(animeId);
+        List<AnimeField> fields = AnimeFieldExtensions.GetAllFields();
+        //List<AnimeField> fields = new(){AnimeField.NumEpisodes};
+        AnimeDetails animeDetails = await malClient.GetAnimeDetailsAsync(animeId, fields);
 
-        Debug.Log($"Anime title: {animeDetails.Title}, Synopsis: {animeDetails.Synopsis}");
-        anime.text = $"Anime title: {animeDetails.Title}, Synopsis: {animeDetails.Synopsis}";
+        string detailsOutput = $"Anime title: {animeDetails.Title}\nID: {animeDetails.Id}\nGenres: {animeDetails.Genres}\nSynopsis: {animeDetails.Synopsis}\n Score: {animeDetails.Mean}\nNumber of Episodes: {animeDetails.NumEpisodes}\nStatus: {animeDetails.Status}";
+        Debug.Log(detailsOutput);
+        anime.text = detailsOutput;
     }
+
 
     private async Task TestGetAnimeRankingAsync()
     {
@@ -63,5 +79,24 @@ public class MALController : MonoBehaviour
 
         Debug.Log($"Suggested anime: {suggestedAnime.Data[0].Node.Title}");
         anime.text = $"Suggested anime: {suggestedAnime.Data[0].Node.Title}";
+    }
+
+    private async Task TestGetMyUserInfoAsync()
+    {
+        UserInfoResponse myUserInfo = await malClient.GetMyUserInfoAsync(new List<UserInfoField>() {UserInfoField.Id});
+        string userInfoOutput = $"User Info: \n" +
+                                $"ID: {myUserInfo.Id}\n" +
+                                $"Name: {myUserInfo.Name}\n" +
+                                $"Picture: {myUserInfo.Picture}\n" +
+                                $"Gender: {myUserInfo.Gender}\n" +
+                                $"Birthday: {myUserInfo.Birthday}\n" +
+                                $"Location: {myUserInfo.Location}\n" +
+                                $"Joined At: {myUserInfo.JoinedAt}\n" +
+                                $"Anime Statistics: {myUserInfo.AnimeStatistics}\n" +
+                                $"Time Zone: {myUserInfo.TimeZone}\n" +
+                                $"Is Supporter: {myUserInfo.IsSupporter}";
+
+        Debug.Log(userInfoOutput);
+        anime.text = userInfoOutput;
     }
 }
