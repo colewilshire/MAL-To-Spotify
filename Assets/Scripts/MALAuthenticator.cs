@@ -1,50 +1,72 @@
 using System.IO;
 using System.Threading.Tasks;
+using System.Text.Json;
 using UnityEngine;
 using TMPro;
 
 public class MALAuthenticator : MonoBehaviour
 {
-    [SerializeField] private TMP_Text anime;
+    [SerializeField] private TMP_InputField anime;
     [SerializeField] private string clientId;
     private Authenticator Authenticator;
     private TaskCompletionSource<MALClient> tcs;
-    private string refreshTokenPath;
-    private string refreshToken;
+    private string savedTokenPath;
+    private TokenResponse savedToken;
 
     private void Awake()
     {
-        refreshTokenPath = Path.Combine(Application.persistentDataPath, "Refresh Token.sav");
-        refreshToken = LoadRefreshToken();
+        savedTokenPath = Path.Combine(Application.persistentDataPath, "Token.sav");
+        LoadSavedToken();
     }
 
-    private void SaveRefreshToken(string refreshToken)
+    private void SaveToken(TokenResponse tokenResponse)
     {
-        //Directory.CreateDirectory(refreshTokenPath);
-        try
+        JsonSerializerOptions jsonSerializerOptions = new()
         {
-            File.WriteAllText(refreshTokenPath, refreshToken);
-        }
-        catch (System.Exception e)
-        {
-            anime.text = $"Save Error: {e}";
-        } 
+            WriteIndented = true,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        };
+        string serializedToken = JsonSerializer.Serialize(tokenResponse, jsonSerializerOptions);
+
+        File.WriteAllText(savedTokenPath, serializedToken);
     }
 
-    private string LoadRefreshToken()
+    private void LoadSavedToken()
     {
-        if (!File.Exists(refreshTokenPath)) return null;
+        if (!File.Exists(savedTokenPath)) return;
+        string serializedToken = File.ReadAllText(savedTokenPath);
         
-        try
+        savedToken = JsonSerializer.Deserialize<TokenResponse>(serializedToken);
+    }
+
+    private async Task<bool> CreateMALClientFromSave(string token)
+    {
+        await Authenticator.RefreshAccessToken(token);
+
+        if (Authenticator.TokenResponse != null)
         {
-            refreshToken = File.ReadAllText(refreshTokenPath);
+            SaveToken(Authenticator.TokenResponse);
+
+            MALClient malClient = new(Authenticator.TokenResponse.AccessToken);
+            tcs.TrySetResult(malClient);
+            return true;
         }
-        catch (System.Exception e)
+        
+        return false;
+    }
+
+    private async Task<bool> VerifySavedAccessToken(string token)
+    {
+        MALClient malClient = new(token);
+        AnimeListResponse animeListResponse = await malClient.GetAnimeListAsync();
+
+        if (animeListResponse != null)
         {
-            anime.text = $"Load error: {e}";
+            tcs.TrySetResult(malClient);
+            return true;
         }
 
-        return refreshToken;
+        return false;
     }
 
     // Called by MALController to begin authentication process
@@ -53,14 +75,10 @@ public class MALAuthenticator : MonoBehaviour
         Authenticator = new(clientId);
         tcs = new();
 
-        if (refreshToken == null)
+        if (savedToken == null || (!await VerifySavedAccessToken(savedToken.AccessToken) && !await CreateMALClientFromSave(savedToken.RefreshToken)))
         {
             string authUrl = Authenticator.GetAuthorizationURL();
             Application.OpenURL(authUrl);
-        }
-        else
-        {
-            CreateMALClientFromSave(refreshToken);
         }
 
         return await tcs.Task;
@@ -73,22 +91,7 @@ public class MALAuthenticator : MonoBehaviour
 
         if (Authenticator.TokenResponse != null)
         {
-            SaveRefreshToken(Authenticator.TokenResponse.RefreshToken);
-            anime.text = $"{Authenticator.TokenResponse.RefreshToken}";
-
-            MALClient malClient = new(Authenticator.TokenResponse.AccessToken);
-            tcs.TrySetResult(malClient);
-        }
-    }
-
-    public async void CreateMALClientFromSave(string token)
-    {
-        await Authenticator.RefreshAccessToken(token);
-
-        if (Authenticator.TokenResponse != null)
-        {
-            SaveRefreshToken(Authenticator.TokenResponse.RefreshToken);
-            anime.text = $"{Authenticator.TokenResponse.RefreshToken}";
+            SaveToken(Authenticator.TokenResponse);
 
             MALClient malClient = new(Authenticator.TokenResponse.AccessToken);
             tcs.TrySetResult(malClient);

@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 public class MALController : MonoBehaviour
 {
-    [SerializeField] private TMP_Text anime;
+    [SerializeField] private TMP_InputField anime;
     private MALAuthenticator malAuthenticator;
     private MALClient malClient;
 
@@ -14,9 +14,7 @@ public class MALController : MonoBehaviour
         malAuthenticator = GetComponent<MALAuthenticator>();
         malClient = await malAuthenticator.AuthenticateMALClient();
 
-        //Test();
-        await TestGetAnimeDetailsAsync(52991);
-        //await TestGetMyUserInfoAsync();
+        Test();
     }
 
     private async void Test()
@@ -26,6 +24,7 @@ public class MALController : MonoBehaviour
         await TestGetAnimeRankingAsync();
         await TestGetSeasonalAnimeAsync(2021, "spring");
         await TestGetSuggestedAnimeAsync();
+        await TestGetMyUserInfoAsync();
     }
 
     private async Task TestGetAnimeListAsync()
@@ -33,22 +32,12 @@ public class MALController : MonoBehaviour
         AnimeListResponse animeList = await malClient.GetAnimeListAsync("@me");
 
         Debug.Log($"First anime in list: {animeList.Data[0].Node.Title}");
-        //anime.text = $"First anime in list: {animeList.Data[0].Node.Title}";
         anime.text = $"First anime in list: {animeList.Data[0].Node.Title}";
     }
-
-    // private async Task TestGetAnimeDetailsAsync(int animeId)
-    // {
-    //     AnimeDetails animeDetails = await malClient.GetAnimeDetailsAsync(animeId);
-
-    //     Debug.Log($"Anime title: {animeDetails.Title}, Synopsis: {animeDetails.Synopsis}");
-    //     anime.text = $"Anime title: {animeDetails.Title}, Synopsis: {animeDetails.Synopsis}";
-    // }
 
     private async Task TestGetAnimeDetailsAsync(int animeId)
     {
         List<AnimeField> fields = AnimeFieldExtensions.GetAllFields();
-        //List<AnimeField> fields = new(){AnimeField.NumEpisodes};
         AnimeDetails animeDetails = await malClient.GetAnimeDetailsAsync(animeId, fields);
 
         string detailsOutput = $"Anime title: {animeDetails.Title}\nID: {animeDetails.Id}\nGenres: {animeDetails.Genres}\nSynopsis: {animeDetails.Synopsis}\n Score: {animeDetails.Mean}\nNumber of Episodes: {animeDetails.NumEpisodes}\nStatus: {animeDetails.Status}";

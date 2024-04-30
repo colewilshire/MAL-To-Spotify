@@ -16,7 +16,7 @@ public class MALClient
     }
 
     // Get the list of anime for a user
-    public async Task<AnimeListResponse> GetAnimeListAsync(string userName, List<AnimeField> fields = null)
+    public async Task<AnimeListResponse> GetAnimeListAsync(string userName = "@me", List<AnimeField> fields = null)
     {
         string fieldsQuery = fields != null ? $"fields={string.Join(",", fields.Select(f => f.ToApiString()))}" : string.Empty;
         string url = $"{baseUrl}users/{userName}/animelist?{fieldsQuery}";
@@ -27,10 +27,8 @@ public class MALClient
             string jsonResponse = await response.Content.ReadAsStringAsync();
             return JsonSerializer.Deserialize<AnimeListResponse>(jsonResponse, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
         }
-        else
-        {
-            throw new HttpRequestException($"Failed to retrieve anime list. Status code: {response.StatusCode}");
-        }
+
+        return null;
     }
 
     public async Task<AnimeDetails> GetAnimeDetailsAsync(int animeId, List<AnimeField> fields = null)
@@ -46,10 +44,8 @@ public class MALClient
 
             return animeDetails;
         }
-        else
-        {
-            throw new HttpRequestException($"Failed to retrieve anime details. Status code: {response.StatusCode}");
-        }
+
+        return null;
     }
 
     // Get anime ranking
@@ -64,10 +60,8 @@ public class MALClient
             string jsonResponse = await response.Content.ReadAsStringAsync();
             return JsonSerializer.Deserialize<AnimeRankingResponse>(jsonResponse, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
         }
-        else
-        {
-            throw new HttpRequestException($"Failed to retrieve anime ranking. Status code: {response.StatusCode}");
-        }
+
+        return null;
     }
 
     // Get suggested anime (this might require special permissions or scopes)
@@ -81,10 +75,8 @@ public class MALClient
             string jsonResponse = await response.Content.ReadAsStringAsync();
             return JsonSerializer.Deserialize<AnimeSuggestionResponse>(jsonResponse, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
         }
-        else
-        {
-            throw new HttpRequestException($"Failed to retrieve suggested anime. Status code: {response.StatusCode}");
-        }
+
+        return null;
     }
 
     // Get anime ranking
@@ -99,10 +91,8 @@ public class MALClient
             string jsonResponse = await response.Content.ReadAsStringAsync();
             return JsonSerializer.Deserialize<SeasonalAnimeResponse>(jsonResponse, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
         }
-        else
-        {
-            throw new HttpRequestException($"Failed to retrieve seasonal anime. Status code: {response.StatusCode}");
-        }
+
+        return null;
     }
 
     // Get logged in user's user info
@@ -117,9 +107,7 @@ public class MALClient
             string jsonResponse = await response.Content.ReadAsStringAsync();
             return JsonSerializer.Deserialize<UserInfoResponse>(jsonResponse, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
         }
-        else
-        {
-            throw new HttpRequestException($"Failed to retrieve user information. Status code: {response.StatusCode}");
-        }
+
+        return null;
     }
 }

@@ -41,10 +41,6 @@ public class Authenticator
         {
             TokenResponse = JsonSerializer.Deserialize<TokenResponse>(responseBody);
         }
-        else
-        {
-            throw new Exception($"Token exchange failed: {response.StatusCode}, {responseBody}");
-        }
     }
 
     // Source: https://myanimelist.net/apiconfig/references/authorization
@@ -67,10 +63,6 @@ public class Authenticator
         if (response.IsSuccessStatusCode)
         {
             TokenResponse = JsonSerializer.Deserialize<TokenResponse>(responseBody);
-        }
-        else
-        {
-            throw new Exception($"Refresh token exchange failed: {response.StatusCode}, {responseBody}");
         }
     }
 }
