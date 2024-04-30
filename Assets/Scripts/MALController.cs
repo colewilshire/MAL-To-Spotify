@@ -6,13 +6,13 @@ using System.Collections.Generic;
 public class MALController : MonoBehaviour
 {
     [SerializeField] private TMP_InputField anime;
-    private MALAuthenticator malAuthenticator;
+    private AuthenticationController authenticationController;
     private MALClient malClient;
 
     private async void Start()
     {
-        malAuthenticator = GetComponent<MALAuthenticator>();
-        malClient = await malAuthenticator.AuthenticateMALClient();
+        authenticationController = GetComponent<AuthenticationController>();
+        malClient = await authenticationController.AuthenticateMALClient();
 
         Test();
     }

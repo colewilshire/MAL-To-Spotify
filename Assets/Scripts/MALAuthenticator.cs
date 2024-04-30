@@ -1,100 +1,68 @@
-using System.IO;
-using System.Threading.Tasks;
+using System;
+using System.Collections.Generic;
+using System.Net.Http;
+using System.Text;
 using System.Text.Json;
-using UnityEngine;
-using TMPro;
+using System.Threading.Tasks;
 
-public class MALAuthenticator : MonoBehaviour
+public class MALAuthenticator
 {
-    [SerializeField] private TMP_InputField anime;
-    [SerializeField] private string clientId;
-    private Authenticator Authenticator;
-    private TaskCompletionSource<MALClient> tcs;
-    private string savedTokenPath;
-    private TokenResponse savedToken;
+    private readonly string clientId;
+    private readonly PKCEHelper pkceHelper = new();
+    private readonly HttpClient httpClient = new();
+    public TokenResponse TokenResponse { get; private set; }
 
-    private void Awake()
+    public MALAuthenticator(string clientId)
     {
-        savedTokenPath = Path.Combine(Application.persistentDataPath, "Token.sav");
-        LoadSavedToken();
+        this.clientId = clientId;
     }
 
-    private void SaveToken(TokenResponse tokenResponse)
+    // The authorization code will be the Return URI's "code" parameter
+    public string GetAuthorizationURL(string scopes = "user:read")
     {
-        JsonSerializerOptions jsonSerializerOptions = new()
+        return $"https://myanimelist.net/v1/oauth2/authorize?response_type=code&client_id={clientId}&scope={scopes}&code_challenge={pkceHelper.CodeChallenge}&code_challenge_method=plain";
+    }
+
+    // Source: https://myanimelist.net/apiconfig/references/authorization
+    public async Task ExchangeAuthorizationCodeForToken(string authorizationCode)
+    {
+        string tokenUrl = "https://myanimelist.net/v1/oauth2/token";
+        FormUrlEncodedContent content = new(new[]
         {
-            WriteIndented = true,
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-        };
-        string serializedToken = JsonSerializer.Serialize(tokenResponse, jsonSerializerOptions);
+            new KeyValuePair<string, string>("client_id", clientId),
+            new KeyValuePair<string, string>("code", authorizationCode),
+            new KeyValuePair<string, string>("code_verifier", pkceHelper.CodeVerifier),
+            new KeyValuePair<string, string>("grant_type", "authorization_code"),
+        });
+        HttpResponseMessage response = await httpClient.PostAsync(tokenUrl, content);
+        string responseBody = await response.Content.ReadAsStringAsync();
 
-        File.WriteAllText(savedTokenPath, serializedToken);
-    }
-
-    private void LoadSavedToken()
-    {
-        if (!File.Exists(savedTokenPath)) return;
-        string serializedToken = File.ReadAllText(savedTokenPath);
-        
-        savedToken = JsonSerializer.Deserialize<TokenResponse>(serializedToken);
-    }
-
-    private async Task<bool> CreateMALClientFromSave(string token)
-    {
-        await Authenticator.RefreshAccessToken(token);
-
-        if (Authenticator.TokenResponse != null)
+        if (response.IsSuccessStatusCode)
         {
-            SaveToken(Authenticator.TokenResponse);
-
-            MALClient malClient = new(Authenticator.TokenResponse.AccessToken);
-            tcs.TrySetResult(malClient);
-            return true;
+            TokenResponse = JsonSerializer.Deserialize<TokenResponse>(responseBody);
         }
-        
-        return false;
     }
 
-    private async Task<bool> VerifySavedAccessToken(string token)
+    // Source: https://myanimelist.net/apiconfig/references/authorization
+    public async Task RefreshAccessToken(string refreshToken)
     {
-        MALClient malClient = new(token);
-        AnimeListResponse animeListResponse = await malClient.GetAnimeListAsync();
+        string tokenUrl = "https://myanimelist.net/v1/oauth2/token";
 
-        if (animeListResponse != null)
+        string credentials = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{clientId}:"));
+        httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", credentials);
+
+        FormUrlEncodedContent content = new(new[]
         {
-            tcs.TrySetResult(malClient);
-            return true;
-        }
+            new KeyValuePair<string, string>("grant_type", "refresh_token"),
+            new KeyValuePair<string, string>("refresh_token", refreshToken),
+        });
 
-        return false;
-    }
+        HttpResponseMessage response = await httpClient.PostAsync(tokenUrl, content);
+        string responseBody = await response.Content.ReadAsStringAsync();
 
-    // Called by MALController to begin authentication process
-    public async Task<MALClient> AuthenticateMALClient()
-    {
-        Authenticator = new(clientId);
-        tcs = new();
-
-        if (savedToken == null || (!await VerifySavedAccessToken(savedToken.AccessToken) && !await CreateMALClientFromSave(savedToken.RefreshToken)))
+        if (response.IsSuccessStatusCode)
         {
-            string authUrl = Authenticator.GetAuthorizationURL();
-            Application.OpenURL(authUrl);
-        }
-
-        return await tcs.Task;
-    }
-
-    // Called by MALToSpotifyDeepLinkActivity.handleIntent automatically through a browser intent
-    public async void CreateMALClient(string authorizationCode)
-    {
-        await Authenticator.ExchangeAuthorizationCodeForToken(authorizationCode);
-
-        if (Authenticator.TokenResponse != null)
-        {
-            SaveToken(Authenticator.TokenResponse);
-
-            MALClient malClient = new(Authenticator.TokenResponse.AccessToken);
-            tcs.TrySetResult(malClient);
+            TokenResponse = JsonSerializer.Deserialize<TokenResponse>(responseBody);
         }
     }
 }
