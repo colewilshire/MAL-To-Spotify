@@ -1773,6 +1773,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   anime: {fileID: 450292469}
   clientId: cd465bf5e8687832f04de69a0df0f99e
+  spotifyClientId: 37a5e94c391748f6b24c4b2dd181c9b0
+  spotifyClientSecret: 1d5a0639c05f43eda669a56124e8747a
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

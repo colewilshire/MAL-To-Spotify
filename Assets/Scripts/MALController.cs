@@ -9,13 +9,13 @@ public class MALController : MonoBehaviour
     private AuthenticationController authenticationController;
     private MALClient malClient;
 
-    private async void Start()
-    {
-        authenticationController = GetComponent<AuthenticationController>();
-        malClient = await authenticationController.AuthenticateMALClient();
+    // private async void Start()
+    // {
+    //     authenticationController = GetComponent<AuthenticationController>();
+    //     malClient = await authenticationController.AuthenticateMALClient();
 
-        Test();
-    }
+    //     Test();
+    // }
 
     private async void Test()
     {
