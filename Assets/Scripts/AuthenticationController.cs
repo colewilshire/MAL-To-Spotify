@@ -8,7 +8,7 @@ public class AuthenticationController : MonoBehaviour
 {
     [SerializeField] private TMP_InputField anime;
     [SerializeField] private string clientId;
-    private MALAuthenticator MALAuthenticator;
+    private MALAuthenticator malAuthenticator;
     private TaskCompletionSource<MALClient> tcs;
     private string savedTokenPath;
     private TokenResponse savedToken;
@@ -41,13 +41,13 @@ public class AuthenticationController : MonoBehaviour
 
     private async Task<bool> CreateMALClientFromSave(string token)
     {
-        await MALAuthenticator.RefreshAccessToken(token);
+        await malAuthenticator.RefreshAccessToken(token);
 
-        if (MALAuthenticator.TokenResponse != null)
+        if (malAuthenticator.TokenResponse != null)
         {
-            SaveToken(MALAuthenticator.TokenResponse);
+            SaveToken(malAuthenticator.TokenResponse);
 
-            MALClient malClient = new(MALAuthenticator.TokenResponse.AccessToken);
+            MALClient malClient = new(malAuthenticator.TokenResponse.AccessToken);
             tcs.TrySetResult(malClient);
             return true;
         }
@@ -72,12 +72,12 @@ public class AuthenticationController : MonoBehaviour
     // Called by MALController to begin authentication process
     public async Task<MALClient> AuthenticateMALClient()
     {
-        MALAuthenticator = new(clientId);
+        malAuthenticator = new(clientId);
         tcs = new();
 
         if (savedToken == null || (!await VerifySavedAccessToken(savedToken.AccessToken) && !await CreateMALClientFromSave(savedToken.RefreshToken)))
         {
-            string authUrl = MALAuthenticator.GetAuthorizationURL();
+            string authUrl = malAuthenticator.GetAuthorizationURL();
             Application.OpenURL(authUrl);
         }
 
@@ -87,13 +87,13 @@ public class AuthenticationController : MonoBehaviour
     // Called by MALToSpotifyDeepLinkActivity.handleIntent automatically through a browser intent
     public async void CreateMALClient(string authorizationCode)
     {
-        await MALAuthenticator.ExchangeAuthorizationCodeForToken(authorizationCode);
+        await malAuthenticator.ExchangeAuthorizationCodeForToken(authorizationCode);
 
-        if (MALAuthenticator.TokenResponse != null)
+        if (malAuthenticator.TokenResponse != null)
         {
-            SaveToken(MALAuthenticator.TokenResponse);
+            SaveToken(malAuthenticator.TokenResponse);
 
-            MALClient malClient = new(MALAuthenticator.TokenResponse.AccessToken);
+            MALClient malClient = new(malAuthenticator.TokenResponse.AccessToken);
             tcs.TrySetResult(malClient);
         }
     }

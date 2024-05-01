@@ -19,11 +19,9 @@ public class SpotifyAuthenticator
     }
 
     // The authorization code will be the Return URI's "code" parameter
-    public string GetAuthorizationURL(string scopes = "user:read")
+    public string GetAuthorizationURL(string scopes = "playlist-modify-public") // https://developer.spotify.com/documentation/web-api/concepts/scopes
     {
-        // mal2spotify://auth
-        //string t = "https://google.com";
-        string t = "mal2spotify://auth";
+        string t = "spotify2mal://auth";
         return $"https://accounts.spotify.com/authorize?client_id={clientId}&response_type=code&redirect_uri={t}";
     }
 
@@ -39,7 +37,7 @@ public class SpotifyAuthenticator
         {
             new KeyValuePair<string, string>("grant_type", "authorization_code"),
             new KeyValuePair<string, string>("code", authorizationCode),
-            new KeyValuePair<string, string>("redirect_uri", "mal2spotify://auth")
+            new KeyValuePair<string, string>("redirect_uri", "spotify2mal://auth")
         });
 
         HttpResponseMessage response = await httpClient.PostAsync(tokenUrl, content);

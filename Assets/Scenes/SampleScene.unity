@@ -1419,6 +1419,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 70a179d954cbea94c900737cc1d07cfa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  anime: {fileID: 450292469}
   clientId: 37a5e94c391748f6b24c4b2dd181c9b0
   clientSecret: 1d5a0639c05f43eda669a56124e8747a
 --- !u!4 &1168768941
@@ -1552,7 +1553,6 @@ GameObject:
   - component: {fileID: 1655368537}
   - component: {fileID: 1655368540}
   - component: {fileID: 1655368539}
-  - component: {fileID: 1655368538}
   m_Layer: 5
   m_Name: Text (TMP)
   m_TagString: Untagged
@@ -1579,14 +1579,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 20, y: 5}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!33 &1655368538
-MeshFilter:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1655368536}
-  m_Mesh: {fileID: 0}
 --- !u!114 &1655368539
 MonoBehaviour:
   m_ObjectHideFlags: 0

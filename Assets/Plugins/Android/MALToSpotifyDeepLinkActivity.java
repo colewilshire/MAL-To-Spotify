@@ -6,25 +6,43 @@ import android.os.Bundle;
 import com.unity3d.player.UnityPlayer;
 import com.unity3d.player.UnityPlayerActivity;
 
-public class MALToSpotifyDeepLinkActivity extends UnityPlayerActivity {
+public class MALToSpotifyDeepLinkActivity extends UnityPlayerActivity
+{
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState)
+    {
         super.onCreate(savedInstanceState);
         handleIntent(getIntent());
     }
 
     @Override
-    protected void onNewIntent(Intent intent) {
+    protected void onNewIntent(Intent intent)
+    {
         super.onNewIntent(intent);
         setIntent(intent);
         handleIntent(intent);
     }
 
-    private void handleIntent(Intent intent) {
+    private void handleIntent(Intent intent)
+    {
         Uri uri = intent.getData();
-        if (uri != null) {
+        if (uri != null)
+        {
+            String scheme = uri.getScheme();
+            String host = uri.getHost();
             String code = uri.getQueryParameter("code");
-            UnityPlayer.UnitySendMessage("MAL Controller", "CreateMALClient", code);    // The first field is the name of the script's GameObject, not the script's name
+
+            if ("auth".equals(host))
+            {
+                if ("mal2spotify".equals(scheme))
+                {
+                    UnityPlayer.UnitySendMessage("MAL Controller", "CreateMALClient", code);
+                }
+                else if ("spotify2mal".equals(scheme))
+                {
+                    UnityPlayer.UnitySendMessage("Spotify Controller", "Test2", code);
+                }
+            }
         }
     }
 }

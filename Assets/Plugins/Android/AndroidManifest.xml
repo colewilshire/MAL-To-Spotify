@@ -16,8 +16,8 @@
                 <category android:name="android.intent.category.BROWSABLE" />
                 
                 <!-- Replace "yourcustomscheme" with your actual scheme -->
-                <data android:scheme="mal2spotify" 
-                      android:host="auth" />
+                <data android:scheme="mal2spotify" android:host="auth" />
+                <data android:scheme="spotify2mal" android:host="auth" />
             </intent-filter>
         </activity>
   </application>
