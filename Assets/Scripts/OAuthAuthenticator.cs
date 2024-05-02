@@ -60,5 +60,26 @@ public class OAuthAuthenticator
             TokenResponse = JsonSerializer.Deserialize<TokenResponse>(responseBody);
         }
     }
+
+    // Source: https://myanimelist.net/apiconfig/references/authorization
+    public async Task RefreshAccessToken(string refreshToken)
+    {
+        string credentials = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{config.ClientId}:"));
+        httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", credentials);
+
+        FormUrlEncodedContent content = new(new[]
+        {
+            new KeyValuePair<string, string>("grant_type", "refresh_token"),
+            new KeyValuePair<string, string>("refresh_token", refreshToken),
+        });
+
+        HttpResponseMessage response = await httpClient.PostAsync(config.TokenEndpoint, content);
+        string responseBody = await response.Content.ReadAsStringAsync();
+
+        if (response.IsSuccessStatusCode)
+        {
+            TokenResponse = JsonSerializer.Deserialize<TokenResponse>(responseBody);
+        }
+    }
 }
 
