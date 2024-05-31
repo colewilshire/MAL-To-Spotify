@@ -7,7 +7,7 @@ using UnityEngine.UI;
 
 public class MALController : MonoBehaviour
 {
-    [SerializeField] private TMP_InputField anime;
+    [SerializeField] private TMP_InputField malInputField;
     [SerializeField] private Button malLoginButton;
 
     private AuthenticationController authenticationController;
@@ -37,7 +37,7 @@ public class MALController : MonoBehaviour
         AnimeListResponse animeList = await malClient.GetAnimeListAsync("@me");
 
         Debug.Log($"First anime in list: {animeList.Data[0].Node.Title}");
-        anime.text = $"First anime in list: {animeList.Data[0].Node.Title}";
+        malInputField.text = $"First anime in list: {animeList.Data[0].Node.Title}";
     }
 
     private async Task TestGetAnimeDetailsAsync(int animeId)
@@ -47,7 +47,7 @@ public class MALController : MonoBehaviour
 
         string detailsOutput = $"Anime title: {animeDetails.Title}\nID: {animeDetails.Id}\nGenres: {animeDetails.Genres}\nSynopsis: {animeDetails.Synopsis}\n Score: {animeDetails.Mean}\nNumber of Episodes: {animeDetails.NumEpisodes}\nStatus: {animeDetails.Status}";
         Debug.Log(detailsOutput);
-        anime.text = detailsOutput;
+        malInputField.text = detailsOutput;
     }
 
 
@@ -56,7 +56,7 @@ public class MALController : MonoBehaviour
         AnimeRankingResponse animeRanking = await malClient.GetAnimeRankingAsync();
 
         Debug.Log($"Top ranked anime: {animeRanking.Data[0].Node.Title}");
-        anime.text = $"Top ranked anime: {animeRanking.Data[0].Node.Title}";
+        malInputField.text = $"Top ranked anime: {animeRanking.Data[0].Node.Title}";
     }
 
     private async Task TestGetSeasonalAnimeAsync(int year, string season)
@@ -64,7 +64,7 @@ public class MALController : MonoBehaviour
         SeasonalAnimeResponse seasonalAnime = await malClient.GetSeasonalAnimeAsync(year, season);
 
         Debug.Log($"Seasonal anime: {seasonalAnime.Data[0].Node.Title}");
-        anime.text = $"Seasonal anime: {seasonalAnime.Data[0].Node.Title}";
+        malInputField.text = $"Seasonal anime: {seasonalAnime.Data[0].Node.Title}";
     }
 
     private async Task TestGetSuggestedAnimeAsync()
@@ -72,7 +72,7 @@ public class MALController : MonoBehaviour
         AnimeSuggestionResponse suggestedAnime = await malClient.GetSuggestedAnimeAsync();
 
         Debug.Log($"Suggested anime: {suggestedAnime.Data[0].Node.Title}");
-        anime.text = $"Suggested anime: {suggestedAnime.Data[0].Node.Title}";
+        malInputField.text = $"Suggested anime: {suggestedAnime.Data[0].Node.Title}";
     }
 
     private async Task TestGetMyUserInfoAsync()
@@ -91,6 +91,6 @@ public class MALController : MonoBehaviour
                                 $"Is Supporter: {myUserInfo.IsSupporter}";
 
         Debug.Log(userInfoOutput);
-        anime.text = userInfoOutput;
+        malInputField.text = userInfoOutput;
     }
 }

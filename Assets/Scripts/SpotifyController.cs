@@ -4,9 +4,9 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class SpotifyTest : MonoBehaviour
+public class SpotifyController : MonoBehaviour
 {
-    [SerializeField] private TMP_InputField anime;
+    [SerializeField] private TMP_InputField spotifyInputField;
     [SerializeField] private Button spotifyLoginButton;
     [SerializeField] private string clientId;
     [SerializeField] private string clientSecret;
@@ -26,6 +26,6 @@ public class SpotifyTest : MonoBehaviour
         spotifyClient = await authenticationController.AuthenticateSpotifyClient();
 
         PrivateUser current = await spotifyClient.UserProfile.Current();
-        anime.text = current.Id;
+        spotifyInputField.text = current.Id;
     }
 }

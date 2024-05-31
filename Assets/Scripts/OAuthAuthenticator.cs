@@ -61,23 +61,36 @@ public class OAuthAuthenticator
         }
     }
 
-    // Source: https://myanimelist.net/apiconfig/references/authorization
+    // Source: https://myanimelist.net/apiconfig/references/authorization, https://developer.spotify.com/documentation/web-api/tutorials/refreshing-tokens
     public async Task RefreshAccessToken(string refreshToken)
     {
-        string credentials = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{config.ClientId}:"));
+        // Encode client_id and client_secret for Basic Authentication
+        string credentials = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{config.ClientId}:{config.ClientSecret}"));
         httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", credentials);
 
-        FormUrlEncodedContent content = new(new[]
+        // Define the request body parameters
+        var keyValues = new List<KeyValuePair<string, string>>
         {
-            new KeyValuePair<string, string>("grant_type", "refresh_token"),
-            new KeyValuePair<string, string>("refresh_token", refreshToken),
-        });
+            new("grant_type", "refresh_token"),
+            new("refresh_token", refreshToken)
+        };
 
+        // Add client_id if client_secret is not used (Spotify uses both in basic auth)
+        if (string.IsNullOrEmpty(config.ClientSecret))
+        {
+            keyValues.Add(new KeyValuePair<string, string>("client_id", config.ClientId));
+        }
+
+        // Create the content for the POST request
+        FormUrlEncodedContent content = new(keyValues);
+
+        // Make the POST request to the token endpoint
         HttpResponseMessage response = await httpClient.PostAsync(config.TokenEndpoint, content);
         string responseBody = await response.Content.ReadAsStringAsync();
 
         if (response.IsSuccessStatusCode)
         {
+            // Deserialize and store the token response
             TokenResponse = JsonSerializer.Deserialize<TokenResponse>(responseBody);
         }
     }
