@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using System.Text.Json;
 using UnityEngine;
 using TMPro;
+using SpotifyAPI.Web;
 
 public class AuthenticationController : MonoBehaviour
 {
@@ -10,20 +11,120 @@ public class AuthenticationController : MonoBehaviour
     [SerializeField] private string clientId;
     [SerializeField] private string spotifyClientId;
     [SerializeField] private string spotifyClientSecret;
-    //private MALAuthenticator malAuthenticator;
+
+    [SerializeField] private string malTokenSaveName = "MALToken";
+    [SerializeField] private string spotifyTokenSaveName = "SpotifyToken";
+    [SerializeField] private string saveFileExtension = "sav";
+
     private OAuthAuthenticator malAuthenticator;
+    private OAuthAuthenticator spotifyAuthenticator;
     private TaskCompletionSource<MALClient> tcs;
-    private string savedTokenPath;
-    private TokenResponse savedToken;
+    private TaskCompletionSource<SpotifyClient> spotifyTcs;
+    //private string savedTokenPath;
+    private TokenResponse savedMALToken;
+    private TokenResponse savedSpotifyToken;
 
     private void Awake()
     {
-        savedTokenPath = Path.Combine(Application.persistentDataPath, "Token.sav");
-        LoadSavedToken();
+        //savedTokenPath = Path.Combine(Application.persistentDataPath, "MALToken.sav");
+        //savedMALToken = LoadSavedToken(malTokenSaveName);
+        //savedSpotifyToken = LoadSavedToken(spotifyTokenSaveName);
     }
 
-    private void SaveToken(TokenResponse tokenResponse)
+    private async void AttemptRefreshTokens()
     {
+        savedMALToken = LoadSavedToken(malTokenSaveName);
+        savedSpotifyToken = LoadSavedToken(spotifyTokenSaveName);
+
+        if (savedMALToken != null && await VerifyRefreshToken(savedMALToken.RefreshToken, malAuthenticator))
+        {
+            // Create client from save
+        }
+        else
+        {
+            // Create client
+            await AuthenticateMALClient();
+        }
+
+        if (savedSpotifyToken != null && await VerifyRefreshToken(savedSpotifyToken.RefreshToken, spotifyAuthenticator))
+        {
+            // Create client from save
+        }
+        else
+        {
+            // Create client
+        }
+    }
+
+    // private async void VerifySavedToken(string tokenSaveName, OAuthAuthenticator authenticator)
+    // {
+    //     TokenResponse token = LoadSavedToken(tokenSaveName);
+    //     if (token == null) return;
+
+    //     if (tokenSaveName == malTokenSaveName && await VerifyMALAccessToken(token.AccessToken))
+    //     {
+    //         return; //true
+    //     }
+    //     else if (tokenSaveName == spotifyTokenSaveName && await VerifySpotifyAccessToken(token.AccessToken))
+    //     {
+    //         return; //true
+    //     }
+    //     else if (await VerifyRefreshToken(token.RefreshToken, authenticator))
+    //     {
+    //         return; //true
+    //     }
+        
+    //     return; //false
+
+    //     // if (!(tokenSaveName == malTokenSaveName && await VerifyMALAccessToken(token.AccessToken)) && !(tokenSaveName == spotifyTokenSaveName && await VerifySpotifyAccessToken(token.AccessToken)))
+    //     // {
+    //     //     await VerifyRefreshToken(token.RefreshToken, authenticator);
+    //     // }
+    // }
+
+    // private async Task<bool> VerifyMALAccessToken(string token)
+    // {
+    //     MALClient malClient = new(token);
+    //     AnimeListResponse animeListResponse = await malClient.GetAnimeListAsync();
+
+    //     if (animeListResponse != null)
+    //     {
+    //         return true;
+    //     }
+
+    //     return false;
+    // }
+
+    // private async Task<bool> VerifySpotifyAccessToken(string token)
+    // {
+    //     SpotifyClient spotifyClient = new(spotifyAuthenticator.TokenResponse.AccessToken);
+    //     PrivateUser currentUser = await spotifyClient.UserProfile.Current();
+
+    //     if (currentUser != null)
+    //     {
+    //         return true;
+    //     }
+
+    //     return false;
+    // }
+
+    private async Task<bool> VerifyRefreshToken(string token, OAuthAuthenticator authenticator)
+    {
+        await authenticator.RefreshAccessToken(token);
+
+        if (authenticator.TokenResponse != null)
+        {
+            SaveToken(authenticator.TokenResponse, malTokenSaveName);
+            return true;
+        }
+        
+        return false;
+    }
+
+    private void SaveToken(TokenResponse tokenResponse, string saveName)
+    {
+        string savedTokenPath = Path.Combine(Application.persistentDataPath, $"{saveName}.{saveFileExtension}");
+
         JsonSerializerOptions jsonSerializerOptions = new()
         {
             WriteIndented = true,
@@ -34,12 +135,15 @@ public class AuthenticationController : MonoBehaviour
         File.WriteAllText(savedTokenPath, serializedToken);
     }
 
-    private void LoadSavedToken()
+    private TokenResponse LoadSavedToken(string saveName)
     {
-        if (!File.Exists(savedTokenPath)) return;
+        string savedTokenPath = Path.Combine(Application.persistentDataPath, $"{saveName}.{saveFileExtension}");
+        if (!File.Exists(savedTokenPath)) return null;
+
         string serializedToken = File.ReadAllText(savedTokenPath);
-        
-        savedToken = JsonSerializer.Deserialize<TokenResponse>(serializedToken);
+        TokenResponse savedToken = JsonSerializer.Deserialize<TokenResponse>(serializedToken);
+
+        return savedToken;
     }
 
     // private async Task<bool> CreateMALClientFromSave(string token)
@@ -48,7 +152,7 @@ public class AuthenticationController : MonoBehaviour
 
     //     if (malAuthenticator.TokenResponse != null)
     //     {
-    //         SaveToken(malAuthenticator.TokenResponse);
+    //         SaveToken(malAuthenticator.TokenResponse, malTokenSaveName);
 
     //         MALClient malClient = new(malAuthenticator.TokenResponse.AccessToken);
     //         tcs.TrySetResult(malClient);
@@ -58,19 +162,19 @@ public class AuthenticationController : MonoBehaviour
     //     return false;
     // }
 
-    private async Task<bool> VerifySavedAccessToken(string token)
-    {
-        MALClient malClient = new(token);
-        AnimeListResponse animeListResponse = await malClient.GetAnimeListAsync();
+    // private async Task<bool> VerifySavedAccessToken(string token)
+    // {
+    //     MALClient malClient = new(token);
+    //     AnimeListResponse animeListResponse = await malClient.GetAnimeListAsync();
 
-        if (animeListResponse != null)
-        {
-            tcs.TrySetResult(malClient);
-            return true;
-        }
+    //     if (animeListResponse != null)
+    //     {
+    //         tcs.TrySetResult(malClient);
+    //         return true;
+    //     }
 
-        return false;
-    }
+    //     return false;
+    // }
 
     // Called by MALController to begin authentication process
     public async Task<MALClient> AuthenticateMALClient()
@@ -87,15 +191,37 @@ public class AuthenticationController : MonoBehaviour
         malAuthenticator = new(malConfig);
         tcs = new();
 
-        //if (savedToken == null || (!await VerifySavedAccessToken(savedToken.AccessToken) && !await CreateMALClientFromSave(savedToken.RefreshToken)))
+        //if (savedMALToken == null || (!await VerifySavedAccessToken(savedMALToken.AccessToken) && !await CreateMALClientFromSave(savedMALToken.RefreshToken)))
         //{
             string authUrl = malAuthenticator.GetAuthorizationURL();
             Application.OpenURL(authUrl);
         //}
-
-        // https://myanimelist.net/v1/oauth2/authorize?response_type=code&client_id=MALClientId&redirect_uri=http://localhost/callback&scope=user:read&code_challenge=HK80hnBY22-qt0_RusKaqjiRE1T-E7L6jTARXj0AK_Q&code_challenge_method=plain
         
         return await tcs.Task;
+    }
+
+    public async Task<SpotifyClient> AuthenticateSpotifyClient()
+    {
+        OAuthConfig spotifyConfig = new()
+        {
+            ClientId = spotifyClientId,
+            ClientSecret = spotifyClientSecret,
+            AuthorizationEndpoint = "https://accounts.spotify.com/authorize",
+            TokenEndpoint = "https://accounts.spotify.com/api/token",
+            RedirectUri = "spotify2mal://auth",
+            Scopes = "playlist-modify-public",
+            UsePkce = false
+        };
+        spotifyAuthenticator = new(spotifyConfig);
+        spotifyTcs = new();
+
+        //if (savedSpotifyToken == null || (!await VerifySavedAccessToken(savedSpotifyToken.AccessToken) && !await CreateMALClientFromSave(savedMALToken.RefreshToken)))
+        //{
+            string authUrl = spotifyAuthenticator.GetAuthorizationURL();
+            Application.OpenURL(authUrl);
+        //}
+        
+        return await spotifyTcs.Task;
     }
 
     // Called by MALToSpotifyDeepLinkActivity.handleIntent automatically through a browser intent
@@ -105,37 +231,23 @@ public class AuthenticationController : MonoBehaviour
 
         if (malAuthenticator.TokenResponse != null)
         {
-            SaveToken(malAuthenticator.TokenResponse);
+            SaveToken(malAuthenticator.TokenResponse, malTokenSaveName);
 
             MALClient malClient = new(malAuthenticator.TokenResponse.AccessToken);
             tcs.TrySetResult(malClient);
         }
     }
 
-    // public async void Test()
-    // {
-    //     OAuthConfig malConfig = new()
-    //     {
-    //         ClientId = "MALClientId",
-    //         AuthorizationEndpoint = "https://myanimelist.net/v1/oauth2/authorize",
-    //         TokenEndpoint = "https://myanimelist.net/v1/oauth2/token",
-    //         RedirectUri = "http://localhost/callback",
-    //         Scopes = "user:read",
-    //         UsePkce = true
-    //     };
+    public async void CreateSpotifyClient(string authorizationCode)
+    {
+        await spotifyAuthenticator.ExchangeAuthorizationCodeForToken(authorizationCode);
 
-    //     // OAuthConfig spotifyConfig = new()
-    //     // {
-    //     //     ClientId = "SpotifyClientId",
-    //     //     ClientSecret = "SpotifyClientSecret", // Spotify requires client secret
-    //     //     AuthorizationEndpoint = "https://accounts.spotify.com/authorize",
-    //     //     TokenEndpoint = "https://accounts.spotify.com/api/token",
-    //     //     RedirectUri = "spotify2mal://auth",
-    //     //     Scopes = "playlist-modify-public",
-    //     //     UsePkce = false // Assuming PKCE is not used for Spotify in this example
-    //     // };
+        if (spotifyAuthenticator.TokenResponse != null)
+        {
+            SaveToken(spotifyAuthenticator.TokenResponse, spotifyTokenSaveName);
 
-    //     OAuthAuthenticator malAuthenticator = new(malConfig);
-    //     //var spotifyAuthenticator = new OAuthAuthenticator(spotifyConfig);
-    // }
+            SpotifyClient spotifyClient = new(spotifyAuthenticator.TokenResponse.AccessToken);
+            spotifyTcs.TrySetResult(spotifyClient);
+        }
+    }
 }

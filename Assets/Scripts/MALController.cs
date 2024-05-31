@@ -1,24 +1,29 @@
 using System.Threading.Tasks;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
-using System.Collections.Generic;
+using UnityEngine.UI;
+
 
 public class MALController : MonoBehaviour
 {
     [SerializeField] private TMP_InputField anime;
+    [SerializeField] private Button malLoginButton;
+
     private AuthenticationController authenticationController;
     private MALClient malClient;
 
-    // private async void Start()
-    // {
-    //     authenticationController = GetComponent<AuthenticationController>();
-    //     malClient = await authenticationController.AuthenticateMALClient();
-
-    //     Test();
-    // }
-
-    private async void Test()
+    private void Start()
     {
+        authenticationController = GetComponent<AuthenticationController>();
+
+        malLoginButton.onClick.AddListener(async () => await Test());
+    }
+
+    private async Task Test()
+    {
+        malClient = await authenticationController.AuthenticateMALClient();
+
         await TestGetAnimeListAsync();
         await TestGetAnimeDetailsAsync(1);
         await TestGetAnimeRankingAsync();

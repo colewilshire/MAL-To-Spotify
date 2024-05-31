@@ -40,7 +40,7 @@ public class MALToSpotifyDeepLinkActivity extends UnityPlayerActivity
                 }
                 else if ("spotify2mal".equals(scheme))
                 {
-                    UnityPlayer.UnitySendMessage("Spotify Controller", "Test2", code);
+                    UnityPlayer.UnitySendMessage("MAL Controller", "CreateSpotifyClient", code);
                 }
             }
         }
