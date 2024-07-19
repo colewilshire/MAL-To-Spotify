@@ -152,6 +152,7 @@ public class AnimeNode
 
 public class Paging
 {
+    public string Previous { get; set; }
     public string Next { get; set; }
 }
 

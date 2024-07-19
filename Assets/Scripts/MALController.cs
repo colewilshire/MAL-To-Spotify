@@ -3,33 +3,50 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using System.Linq;
 
 
 public class MALController : MonoBehaviour
 {
     [SerializeField] private TMP_InputField malInputField;
     [SerializeField] private Button malLoginButton;
+    [SerializeField] private Button seekAnimeButton;
 
     private AuthenticationController authenticationController;
     private MALClient malClient;
+
+    private int ind = 0;
+    AnimeListResponse animeList;
 
     private void Start()
     {
         authenticationController = GetComponent<AuthenticationController>();
 
         malLoginButton.onClick.AddListener(async () => await Test());
+        seekAnimeButton.onClick.AddListener(SeekAnime);
     }
 
     private async Task Test()
     {
         malClient = await authenticationController.AuthenticateMALClient();
 
-        await TestGetAnimeListAsync();
-        await TestGetAnimeDetailsAsync(1);
-        await TestGetAnimeRankingAsync();
-        await TestGetSeasonalAnimeAsync(2021, "spring");
-        await TestGetSuggestedAnimeAsync();
-        await TestGetMyUserInfoAsync();
+        // await TestGetAnimeListAsync();
+        // await TestGetAnimeDetailsAsync(1);
+        // await TestGetAnimeRankingAsync();
+        // await TestGetSeasonalAnimeAsync(2021, "spring");
+        // await TestGetSuggestedAnimeAsync();
+        // await TestGetMyUserInfoAsync();
+
+        animeList = await GetAnimeListAsync();
+        //await GetRawAnimeListAsync();
+    }
+
+    private void SeekAnime()
+    {
+        if (animeList == null || ind >= animeList.Data.Count) return;
+
+        ++ind;
+        malInputField.text = $"{ind}. {animeList.Data[ind].Node.Title}";
     }
 
     private async Task TestGetAnimeListAsync()
@@ -92,5 +109,27 @@ public class MALController : MonoBehaviour
 
         Debug.Log(userInfoOutput);
         malInputField.text = userInfoOutput;
+    }
+
+    public async Task<AnimeListResponse> GetAnimeListAsync()
+    {
+        AnimeListResponse animeList = await malClient.GetAnimeListAsync();
+
+        //var q = animeList.Data[1];
+
+        //string l = "";
+        // foreach (AnimeListNode anime in animeList.Data)
+        // {
+        //     malInputField.text = anime.Node.Title;
+        //     //l += $"{count}. {anime.Node.Title}\n";
+        // }
+        //malInputField.text = $"{animeList.Data.Count.ToString()}, {animeList.Paging.Next}";
+        //malInputField.text = l;
+        //malInputField.text = animeList.Paging.Next;
+
+        malInputField.text = $"0. {animeList.Data[0].Node.Title}";
+        //malInputField.text = $"{animeList.Paging.Previous}";
+
+        return animeList;
     }
 }

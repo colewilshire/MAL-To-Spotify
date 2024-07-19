@@ -16,10 +16,10 @@ public class MALClient
     }
 
     // Get the list of anime for a user
-    public async Task<AnimeListResponse> GetAnimeListAsync(string userName = "@me", List<AnimeField> fields = null)
+    public async Task<AnimeListResponse> GetAnimeListAsync(string userName = "@me", List<AnimeField> fields = null, bool nsfw = true, int offset = 0, int pageSize = 1000)
     {
         string fieldsQuery = fields != null ? $"fields={string.Join(",", fields.Select(f => f.ToApiString()))}" : string.Empty;
-        string url = $"{baseUrl}users/{userName}/animelist?{fieldsQuery}";
+        string url = $"{baseUrl}users/{userName}/animelist?offset={offset}&limit={pageSize}&{fieldsQuery}&nsfw={nsfw}";
 
         HttpResponseMessage response = await httpClient.GetAsync(url);
         if (response.IsSuccessStatusCode)
