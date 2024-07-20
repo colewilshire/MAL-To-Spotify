@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using System.Linq;
 
 
 public class MALController : MonoBehaviour
@@ -38,6 +37,7 @@ public class MALController : MonoBehaviour
         // await TestGetMyUserInfoAsync();
 
         animeList = await GetAnimeListAsync();
+        seekAnimeButton.interactable = true;
         //await GetRawAnimeListAsync();
     }
 
@@ -111,25 +111,33 @@ public class MALController : MonoBehaviour
         malInputField.text = userInfoOutput;
     }
 
-    public async Task<AnimeListResponse> GetAnimeListAsync()
+    public async Task<AnimeListResponse> GetAnimeListAsync(string nextPageUrl = null)
     {
-        AnimeListResponse animeList = await malClient.GetAnimeListAsync();
+        AnimeListResponse newAnimeList;
 
-        //var q = animeList.Data[1];
+        malLoginButton.interactable = false;
+        seekAnimeButton.interactable = false;
+        ind = 0;
+        malInputField.text = $"Loading...";
 
-        //string l = "";
-        // foreach (AnimeListNode anime in animeList.Data)
-        // {
-        //     malInputField.text = anime.Node.Title;
-        //     //l += $"{count}. {anime.Node.Title}\n";
-        // }
-        //malInputField.text = $"{animeList.Data.Count.ToString()}, {animeList.Paging.Next}";
-        //malInputField.text = l;
-        //malInputField.text = animeList.Paging.Next;
+        if (nextPageUrl != null)
+        {
+            newAnimeList = await malClient.GetAnimeListNextPageAsync(nextPageUrl);
+        }
+        else
+        {
+            newAnimeList = await malClient.GetAnimeListAsync("@me", null, true, 0, 50);
+        }
 
-        malInputField.text = $"0. {animeList.Data[0].Node.Title}";
-        //malInputField.text = $"{animeList.Paging.Previous}";
+        if (newAnimeList.Paging.Next != null)
+        {
+            AnimeListResponse nextAnimeList = await GetAnimeListAsync(newAnimeList.Paging.Next);
+            newAnimeList.Data.AddRange(nextAnimeList.Data);
+        }
 
-        return animeList;
+        malInputField.text = $"0. {newAnimeList.Data[0].Node.Title}";
+        malLoginButton.interactable = true;
+
+        return newAnimeList;
     }
 }
