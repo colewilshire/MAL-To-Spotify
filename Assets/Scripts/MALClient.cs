@@ -21,7 +21,18 @@ public class MALClient
         if (response.IsSuccessStatusCode)
         {
             string jsonResponse = await response.Content.ReadAsStringAsync();
-            return JsonSerializer.Deserialize<T>(jsonResponse, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            return JsonSerializer.Deserialize<T>(jsonResponse, new JsonSerializerOptions { PropertyNamingPolicy = new SnakeCaseNamingPolicy(), PropertyNameCaseInsensitive = true });
+        }
+
+        return default;
+    }
+
+    private async Task<string> FetchRawDataAsync(string url)
+    {
+        HttpResponseMessage response = await httpClient.GetAsync(url);
+        if (response.IsSuccessStatusCode)
+        {
+            return await response.Content.ReadAsStringAsync();
         }
 
         return default;
@@ -35,6 +46,14 @@ public class MALClient
         return await GetAnimeListNextPageAsync(url);
     }
 
+    public async Task<string> GetRawAnimeListAsync(string userName = "@me", List<AnimeField> fields = null, bool nsfw = true, int offset = 0, int pageSize = 1000)
+    {
+        string fieldsQuery = fields != null ? $"fields={string.Join(",", fields.Select(f => f.ToApiString()))}" : string.Empty;
+        string url = $"{baseUrl}users/{userName}/animelist?offset={offset}&limit={pageSize}&{fieldsQuery}&nsfw={nsfw}";
+
+        return await FetchRawDataAsync(url);
+    }
+
     public async Task<AnimeListResponse> GetAnimeListNextPageAsync(string nextPageUrl)
     {
         return await FetchDataAsync<AnimeListResponse>(nextPageUrl);
@@ -46,6 +65,14 @@ public class MALClient
         string url = $"{baseUrl}anime/{animeId}?{fieldsQuery}";
 
         return await FetchDataAsync<AnimeDetails>(url);
+    }
+
+    public async Task<string> GetRawAnimeDetailsAsync(int animeId, List<AnimeField> fields = null)
+    {
+        string fieldsQuery = fields != null ? $"fields={string.Join(",", fields.Select(f => f.ToApiString()))}" : string.Empty;
+        string url = $"{baseUrl}anime/{animeId}?{fieldsQuery}";
+
+        return await FetchRawDataAsync(url);
     }
 
     public async Task<AnimeRankingResponse> GetAnimeRankingAsync(string rankingType = "all", int limit = 10, List<AnimeField> fields = null)
@@ -77,5 +104,14 @@ public class MALClient
         string url = $"{baseUrl}users/@me?{fieldsQuery}";
 
         return await FetchDataAsync<UserInfoResponse>(url);
+    }
+}
+
+public class SnakeCaseNamingPolicy : JsonNamingPolicy
+{
+    public override string ConvertName(string name)
+    {
+        return string.Concat(
+            name.Select((x, i) => i > 0 && char.IsUpper(x) ? "_" + x.ToString().ToLower() : x.ToString().ToLower()));
     }
 }
