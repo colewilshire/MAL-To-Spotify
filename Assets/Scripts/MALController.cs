@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using System.IO;
+using System.Text.Json;
 
 public class MALController : MonoBehaviour
 {
@@ -15,10 +17,12 @@ public class MALController : MonoBehaviour
 
     private int ind = 0;
     private AnimeListResponse fullAnimeList;
-    private readonly List<Theme> openingThemes = new();
+    private List<Theme> openingThemes;
 
     private int currentAnimeIndex = 0;
     private int iteration = 0;
+
+    [SerializeField] private string saveFileExtension = "sav";
 
     private void Start()
     {
@@ -34,24 +38,26 @@ public class MALController : MonoBehaviour
         seekAnimeButton.interactable = false;
 
         malClient = await authenticationController.AuthenticateMALClient();
+        openingThemes = LoadThemeSongList("OpeningThemes");
 
-        while (fullAnimeList == null)
+        if (openingThemes == null)
         {
-            fullAnimeList = await GetAnimeListAsync();
-        }
-
-        if (fullAnimeList != null)
-        {
-            while (currentAnimeIndex < fullAnimeList.Data.Count)
+            while (fullAnimeList == null)
             {
-                List<Theme> tempOpeningThemes = await GetAnimeListThemeSongsAsync(fullAnimeList, currentAnimeIndex);
-                openingThemes.AddRange(tempOpeningThemes);
+                fullAnimeList = await GetAnimeListAsync();
             }
 
-            if (openingThemes != null && openingThemes.Count > 0 && openingThemes[0] != null)
+            if (fullAnimeList != null)
             {
-                string t = openingThemes[0].Text;
-                malInputField.text = $"{0}. {t}";
+                openingThemes = new();
+
+                while (currentAnimeIndex < fullAnimeList.Data.Count)
+                {
+                    List<Theme> tempOpeningThemes = await GetAnimeListThemeSongsAsync(fullAnimeList, currentAnimeIndex);
+                    openingThemes.AddRange(tempOpeningThemes);
+                }
+
+                SaveThemeSongList(openingThemes, "OpeningThemes");
             }
         }
 
@@ -62,10 +68,11 @@ public class MALController : MonoBehaviour
 
     private void SeekAnime()
     {
-        if (fullAnimeList != null && ind < openingThemes.Count)
+        if (ind < openingThemes.Count)
         {
-            string t = openingThemes[ind].Text;
-            malInputField.text = $"{ind}. {t}";
+            string themeName = openingThemes[ind].Text;
+
+            malInputField.text = $"{ind}. {themeName}";
             ++ind;
         }
     }
@@ -197,5 +204,29 @@ public class MALController : MonoBehaviour
         }
 
         return themeSongs;
+    }
+
+    private void SaveThemeSongList(List<Theme> themeSongList, string saveName)
+    {
+        string savedListPath = Path.Combine(Application.persistentDataPath, $"{saveName}.{saveFileExtension}");
+
+        JsonSerializerOptions jsonSerializerOptions = new()
+        {
+            WriteIndented = true
+        };
+        string serializedList = JsonSerializer.Serialize(themeSongList, jsonSerializerOptions);
+
+        File.WriteAllText(savedListPath, serializedList);
+    }
+
+    private List<Theme> LoadThemeSongList(string saveName)
+    {
+        string savedListPath = Path.Combine(Application.persistentDataPath, $"{saveName}.{saveFileExtension}");
+        if (!File.Exists(savedListPath)) return null;
+
+        string serializedList = File.ReadAllText(savedListPath);
+        List<Theme> savedList = JsonSerializer.Deserialize<List<Theme>>(serializedList);
+
+        return savedList;
     }
 }
