@@ -34,7 +34,11 @@ public class MALController : MonoBehaviour
         seekAnimeButton.interactable = false;
 
         malClient = await authenticationController.AuthenticateMALClient();
-        fullAnimeList = await GetAnimeListAsync();
+
+        while (fullAnimeList == null)
+        {
+            fullAnimeList = await GetAnimeListAsync();
+        }
 
         if (fullAnimeList != null)
         {
@@ -42,6 +46,12 @@ public class MALController : MonoBehaviour
             {
                 List<Theme> tempOpeningThemes = await GetAnimeListThemeSongsAsync(fullAnimeList, currentAnimeIndex);
                 openingThemes.AddRange(tempOpeningThemes);
+            }
+
+            if (openingThemes != null && openingThemes.Count > 0 && openingThemes[0] != null)
+            {
+                string t = openingThemes[0].Text;
+                malInputField.text = $"{0}. {t}";
             }
         }
 
@@ -52,11 +62,12 @@ public class MALController : MonoBehaviour
 
     private void SeekAnime()
     {
-        //if (fullAnimeList != null && ind < openingThemes.Count)
-        //{
-            malInputField.text = $"{ind}. {openingThemes[ind].Text}";
+        if (fullAnimeList != null && ind < openingThemes.Count)
+        {
+            string t = openingThemes[ind].Text;
+            malInputField.text = $"{ind}. {t}";
             ++ind;
-        //}
+        }
     }
 
     private async Task TestGetAnimeListAsync()
@@ -122,11 +133,8 @@ public class MALController : MonoBehaviour
 
     public async Task<AnimeListResponse> GetAnimeListAsync(string nextPageUrl = null)
     {
-        //AnimeListResponse animeList;
         AnimeListResponse animeList;
 
-        malLoginButton.interactable = false;
-        seekAnimeButton.interactable = false;
         ind = 0;
         malInputField.text = $"Loading...";
 
@@ -151,11 +159,6 @@ public class MALController : MonoBehaviour
             animeList.Data.AddRange(nextAnimeList.Data);
         }
 
-        //malInputField.text = $"0. {animeList.Data[0].Node.Title}";
-        //malInputField.text = await malClient.GetRawAnimeListAsync("@me", new List<AnimeField>(){AnimeField.OpeningThemes}, true, 0, 2);
-        //malInputField.text = await malClient.GetRawAnimeDetailsAsync(1, new List<AnimeField>(){AnimeField.OpeningThemes});
-        //malLoginButton.interactable = true;
-
         return animeList;
     }
 
@@ -167,17 +170,22 @@ public class MALController : MonoBehaviour
         List<Theme> themeSongs = new();
         List<AnimeField> fields = new() { AnimeField.OpeningThemes };
 
-        malLoginButton.interactable = false;
-        seekAnimeButton.interactable = false;
-
         for (int i = startingIndex; i < animeList.Data.Count; ++i)
         {
             AnimeListNode anime = animeList.Data[i];
-            string rawAnimeDetails = await malClient.GetRawAnimeDetailsAsync(anime.Node.Id, fields);
+            AnimeDetails animeDetails = await malClient.GetAnimeDetailsAsync(anime.Node.Id, fields);
 
-            if (rawAnimeDetails != null)
+            if (animeDetails != null)
             {
-                malInputField.text = rawAnimeDetails;
+                malInputField.text = animeDetails.Title;
+
+                if (animeDetails.OpeningThemes != null)
+                {
+                    foreach (Theme themeSong in animeDetails.OpeningThemes)
+                    {
+                        themeSongs.Add(themeSong);
+                    }
+                }
             }
             else
             {
@@ -187,9 +195,6 @@ public class MALController : MonoBehaviour
 
             currentAnimeIndex++;
         }
-
-        //malLoginButton.interactable = true;
-        //seekAnimeButton.interactable = true;
 
         return themeSongs;
     }
