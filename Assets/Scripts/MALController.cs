@@ -16,7 +16,7 @@ public class MALController : Singleton<MALController>
 
     private int ind = 0;
     private AnimeListResponse fullAnimeList;
-    private List<Theme> openingThemes;
+    public List<Theme> OpeningThemes;
 
     private int currentAnimeIndex = 0;
     private int iteration = 0;
@@ -35,10 +35,10 @@ public class MALController : Singleton<MALController>
         malLoginButton.interactable = false;
         seekAnimeButton.interactable = false;
 
-        malClient = await AuthenticationController.Instance.AuthenticateMALClient();
-        openingThemes = LoadThemeSongList(SongListSaveName);
+        //malClient = await AuthenticationController.Instance.AuthenticateMALClient();
+        OpeningThemes = LoadThemeSongList(SongListSaveName);
 
-        if (openingThemes == null)
+        if (OpeningThemes == null)
         {
             while (fullAnimeList == null)
             {
@@ -47,15 +47,15 @@ public class MALController : Singleton<MALController>
 
             if (fullAnimeList != null)
             {
-                openingThemes = new();
+                OpeningThemes = new();
 
                 while (currentAnimeIndex < fullAnimeList.Data.Count)
                 {
                     List<Theme> tempOpeningThemes = await GetAnimeListThemeSongsAsync(fullAnimeList, currentAnimeIndex);
-                    openingThemes.AddRange(tempOpeningThemes);
+                    OpeningThemes.AddRange(tempOpeningThemes);
                 }
 
-                SaveThemeSongList(openingThemes, SongListSaveName);
+                SaveThemeSongList(OpeningThemes, SongListSaveName);
             }
         }
 
@@ -66,9 +66,9 @@ public class MALController : Singleton<MALController>
 
     private void SeekAnime()
     {
-        if (ind < openingThemes.Count)
+        if (ind < OpeningThemes.Count)
         {
-            string themeName = openingThemes[ind].Text;
+            string themeName = OpeningThemes[ind].Text;
 
             malInputField.text = $"{ind}. {themeName}";
             ++ind;

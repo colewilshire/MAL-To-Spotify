@@ -19,8 +19,8 @@ public class DebugMenu : Menu
 
         printSavedMALTokenButton.onClick.AddListener(() => PrintSavedToken(AuthenticationController.Instance.MalTokenSaveName));
         printSavedSpotifyTokenButton.onClick.AddListener(() => PrintSavedToken(AuthenticationController.Instance.SpotifyTokenSaveName));
-        deleteSavedMALTokenButton.onClick.AddListener(() => DeleteSavedSpotifyToken(AuthenticationController.Instance.MalTokenSaveName));
-        deleteSavedSpotifyTokenButton.onClick.AddListener(() => DeleteSavedSpotifyToken(AuthenticationController.Instance.SpotifyTokenSaveName));
+        deleteSavedMALTokenButton.onClick.AddListener(() => DeleteSavedToken(AuthenticationController.Instance.MalTokenSaveName));
+        deleteSavedSpotifyTokenButton.onClick.AddListener(() => DeleteSavedToken(AuthenticationController.Instance.SpotifyTokenSaveName));
         printSavedSongListButton.onClick.AddListener(PrintSavedSongList);
         mainMenuButton.onClick.AddListener(() => MenuController.Instance.SetMenu(MenuState.Main));
     }
@@ -31,9 +31,9 @@ public class DebugMenu : Menu
         console.text = serializedToken;
     }
 
-    private void DeleteSavedSpotifyToken(string tokenSaveName)
+    private void DeleteSavedToken(string tokenSaveName)
     {
-        AuthenticationController.Instance.DeleteSavedToken(AuthenticationController.Instance.SpotifyTokenSaveName);
+        AuthenticationController.Instance.DeleteSavedToken(tokenSaveName);
     }
 
     private void PrintSavedSongList()
