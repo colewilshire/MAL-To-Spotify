@@ -629,6 +629,58 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &779519617
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 779519619}
+  - component: {fileID: 779519618}
+  m_Layer: 0
+  m_Name: Authentication Controller
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &779519618
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 779519617}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 79d11ac1925b52340b8c3607eb2fc0f5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  malInputField: {fileID: 450292469}
+  spotifyInputField: {fileID: 784663974}
+  malClientId: cd465bf5e8687832f04de69a0df0f99e
+  spotifyClientId: 37a5e94c391748f6b24c4b2dd181c9b0
+  spotifyClientSecret: 1d5a0639c05f43eda669a56124e8747a
+  malTokenSaveName: MALToken
+  spotifyTokenSaveName: SpotifyToken
+  saveFileExtension: sav
+--- !u!4 &779519619
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 779519617}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &784663972
 GameObject:
   m_ObjectHideFlags: 0
@@ -2141,6 +2193,54 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1770818428}
   m_CullTransparentMesh: 1
+--- !u!1 &1785672224
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1785672226}
+  - component: {fileID: 1785672225}
+  m_Layer: 0
+  m_Name: Spotify Controller
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1785672225
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1785672224}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 70a179d954cbea94c900737cc1d07cfa, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  spotifyInputField: {fileID: 784663974}
+  spotifyLoginButton: {fileID: 806820085}
+  clientId: 37a5e94c391748f6b24c4b2dd181c9b0
+  clientSecret: 1d5a0639c05f43eda669a56124e8747a
+--- !u!4 &1785672226
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1785672224}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1950093111
 GameObject:
   m_ObjectHideFlags: 0
@@ -2151,8 +2251,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1950093113}
   - component: {fileID: 1950093112}
-  - component: {fileID: 1950093114}
-  - component: {fileID: 1950093115}
   m_Layer: 0
   m_Name: MAL Controller
   m_TagString: Untagged
@@ -2175,6 +2273,7 @@ MonoBehaviour:
   malInputField: {fileID: 450292469}
   malLoginButton: {fileID: 2068680215}
   seekAnimeButton: {fileID: 1247413483}
+  saveFileExtension: sav
 --- !u!4 &1950093113
 Transform:
   m_ObjectHideFlags: 0
@@ -2190,42 +2289,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1950093114
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1950093111}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 79d11ac1925b52340b8c3607eb2fc0f5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  malInputField: {fileID: 450292469}
-  spotifyInputField: {fileID: 784663974}
-  malClientId: cd465bf5e8687832f04de69a0df0f99e
-  spotifyClientId: 37a5e94c391748f6b24c4b2dd181c9b0
-  spotifyClientSecret: 1d5a0639c05f43eda669a56124e8747a
-  malTokenSaveName: MALToken
-  spotifyTokenSaveName: SpotifyToken
-  saveFileExtension: sav
---- !u!114 &1950093115
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1950093111}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 70a179d954cbea94c900737cc1d07cfa, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  spotifyInputField: {fileID: 784663974}
-  spotifyLoginButton: {fileID: 806820085}
-  clientId: 37a5e94c391748f6b24c4b2dd181c9b0
-  clientSecret: 1d5a0639c05f43eda669a56124e8747a
 --- !u!1 &2068680213
 GameObject:
   m_ObjectHideFlags: 0
@@ -2355,3 +2418,5 @@ SceneRoots:
   - {fileID: 1358336186}
   - {fileID: 673235215}
   - {fileID: 1950093113}
+  - {fileID: 779519619}
+  - {fileID: 1785672226}

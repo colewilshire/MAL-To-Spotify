@@ -6,13 +6,12 @@ using UnityEngine.UI;
 using System.IO;
 using System.Text.Json;
 
-public class MALController : MonoBehaviour
+public class MALController : Singleton<MALController>
 {
     [SerializeField] private TMP_InputField malInputField;
     [SerializeField] private Button malLoginButton;
     [SerializeField] private Button seekAnimeButton;
 
-    private AuthenticationController authenticationController;
     private MALClient malClient;
 
     private int ind = 0;
@@ -26,8 +25,6 @@ public class MALController : MonoBehaviour
 
     private void Start()
     {
-        authenticationController = GetComponent<AuthenticationController>();
-
         malLoginButton.onClick.AddListener(async () => await Test());
         seekAnimeButton.onClick.AddListener(SeekAnime);
     }
@@ -37,7 +34,7 @@ public class MALController : MonoBehaviour
         malLoginButton.interactable = false;
         seekAnimeButton.interactable = false;
 
-        malClient = await authenticationController.AuthenticateMALClient();
+        malClient = await AuthenticationController.Instance.AuthenticateMALClient();
         openingThemes = LoadThemeSongList("OpeningThemes");
 
         if (openingThemes == null)

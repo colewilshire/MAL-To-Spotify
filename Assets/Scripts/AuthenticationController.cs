@@ -5,7 +5,7 @@ using UnityEngine;
 using TMPro;
 using SpotifyAPI.Web;
 
-public class AuthenticationController : MonoBehaviour
+public class AuthenticationController : Singleton<AuthenticationController>
 {
     [SerializeField] private TMP_InputField malInputField;
     [SerializeField] private TMP_InputField spotifyInputField;
@@ -24,8 +24,10 @@ public class AuthenticationController : MonoBehaviour
     private TokenResponse savedMALToken;
     private TokenResponse savedSpotifyToken;
 
-    private void Awake()
+    protected override void Awake()
     {
+        base.Awake();
+
         InitializeAuthenticators();
         AttemptRefreshTokens();
     }
