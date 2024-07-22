@@ -34,7 +34,7 @@ public class SpotifyController : Singleton<SpotifyController>
         string trackUri = searchResponse.Tracks.Items[0].Uri;
         spotifyInputField.text = trackUri;
 
-        IList<string> songUris = new List<string>() {trackUri};
+        List<string> songUris = new() {trackUri};
         PlaylistAddItemsRequest playlistAddItemsRequest = new(songUris);
 
         await spotifyClient.Playlists.AddItems(playlist.Id, playlistAddItemsRequest);
