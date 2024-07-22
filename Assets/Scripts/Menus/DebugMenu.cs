@@ -5,8 +5,11 @@ using UnityEngine.UI;
 public class DebugMenu : Menu
 {
     protected override MenuState ActiveState {get; set;} = MenuState.Debug;
-    [SerializeField] private Button outputSavedMALTokenButton;
-    [SerializeField] private Button outputSavedSpotifyTokenButton;
+    [SerializeField] private Button printSavedMALTokenButton;
+    [SerializeField] private Button printSavedSpotifyTokenButton;
+    [SerializeField] private Button deleteSavedMALTokenButton;
+    [SerializeField] private Button deleteSavedSpotifyTokenButton;
+    [SerializeField] private Button printSavedSongListButton;
     [SerializeField] private Button mainMenuButton;
     [SerializeField] private TMP_InputField console;
 
@@ -14,20 +17,28 @@ public class DebugMenu : Menu
     {
         base.Start();
 
-        outputSavedMALTokenButton.onClick.AddListener(OutputSavedMALToken);
-        outputSavedSpotifyTokenButton.onClick.AddListener(OutputSavedSpotifyToken);
+        printSavedMALTokenButton.onClick.AddListener(() => PrintSavedToken(AuthenticationController.Instance.MalTokenSaveName));
+        printSavedSpotifyTokenButton.onClick.AddListener(() => PrintSavedToken(AuthenticationController.Instance.SpotifyTokenSaveName));
+        deleteSavedMALTokenButton.onClick.AddListener(() => DeleteSavedSpotifyToken(AuthenticationController.Instance.MalTokenSaveName));
+        deleteSavedSpotifyTokenButton.onClick.AddListener(() => DeleteSavedSpotifyToken(AuthenticationController.Instance.SpotifyTokenSaveName));
+        printSavedSongListButton.onClick.AddListener(PrintSavedSongList);
         mainMenuButton.onClick.AddListener(() => MenuController.Instance.SetMenu(MenuState.Main));
     }
 
-    private void OutputSavedMALToken()
+    private void PrintSavedToken(string tokenSaveName)
     {
-        string serializedToken = AuthenticationController.Instance.GetTokenSaveData(AuthenticationController.Instance.MalTokenSaveName);
+        string serializedToken = AuthenticationController.Instance.GetTokenSaveData(tokenSaveName);
         console.text = serializedToken;
     }
 
-    private void OutputSavedSpotifyToken()
+    private void DeleteSavedSpotifyToken(string tokenSaveName)
     {
-        string serializedToken = AuthenticationController.Instance.GetTokenSaveData(AuthenticationController.Instance.SpotifyTokenSaveName);
-        console.text = serializedToken;
+        AuthenticationController.Instance.DeleteSavedToken(AuthenticationController.Instance.SpotifyTokenSaveName);
+    }
+
+    private void PrintSavedSongList()
+    {
+        string serializedSongList = MALController.Instance.GetSerializedSongList(MALController.Instance.SongListSaveName);
+        console.text = serializedSongList;
     }
 }

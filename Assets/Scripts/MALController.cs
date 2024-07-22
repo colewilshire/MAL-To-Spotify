@@ -22,6 +22,7 @@ public class MALController : Singleton<MALController>
     private int iteration = 0;
 
     [SerializeField] private string saveFileExtension = "sav";
+    public string SongListSaveName = "OpeningThemes";
 
     private void Start()
     {
@@ -35,7 +36,7 @@ public class MALController : Singleton<MALController>
         seekAnimeButton.interactable = false;
 
         malClient = await AuthenticationController.Instance.AuthenticateMALClient();
-        openingThemes = LoadThemeSongList("OpeningThemes");
+        openingThemes = LoadThemeSongList(SongListSaveName);
 
         if (openingThemes == null)
         {
@@ -54,7 +55,7 @@ public class MALController : Singleton<MALController>
                     openingThemes.AddRange(tempOpeningThemes);
                 }
 
-                SaveThemeSongList(openingThemes, "OpeningThemes");
+                SaveThemeSongList(openingThemes, SongListSaveName);
             }
         }
 
@@ -218,12 +219,19 @@ public class MALController : Singleton<MALController>
 
     private List<Theme> LoadThemeSongList(string saveName)
     {
+        string serializedList = GetSerializedSongList(saveName);
+        if (serializedList == null) return null;
+
+        List<Theme> savedList = JsonSerializer.Deserialize<List<Theme>>(serializedList);
+        return savedList;
+    }
+
+    public string GetSerializedSongList(string saveName)
+    {
         string savedListPath = Path.Combine(Application.persistentDataPath, $"{saveName}.{saveFileExtension}");
         if (!File.Exists(savedListPath)) return null;
 
         string serializedList = File.ReadAllText(savedListPath);
-        List<Theme> savedList = JsonSerializer.Deserialize<List<Theme>>(serializedList);
-
-        return savedList;
+        return serializedList;
     }
 }

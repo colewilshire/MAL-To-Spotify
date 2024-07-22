@@ -116,6 +116,14 @@ public class AuthenticationController : Singleton<AuthenticationController>
         return savedToken;
     }
 
+    public void DeleteSavedToken(string saveName)
+    {
+        string savedTokenPath = Path.Combine(Application.persistentDataPath, $"{saveName}.{saveFileExtension}");
+        if (!File.Exists(savedTokenPath)) return;
+
+        File.Delete(savedTokenPath);
+    }
+
     public string GetTokenSaveData(string saveName)
     {
         string savedTokenPath = Path.Combine(Application.persistentDataPath, $"{saveName}.{saveFileExtension}");
