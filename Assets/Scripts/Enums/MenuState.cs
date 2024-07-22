@@ -1,5 +1,6 @@
 public enum MenuState
 {
     Default,
-    MainMenu
+    Main,
+    Debug
 }

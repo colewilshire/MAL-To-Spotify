@@ -13,16 +13,16 @@ public class AuthenticationController : Singleton<AuthenticationController>
     [SerializeField] private string spotifyClientId;
     [SerializeField] private string spotifyClientSecret;
 
-    [SerializeField] private string malTokenSaveName = "MALToken";
-    [SerializeField] private string spotifyTokenSaveName = "SpotifyToken";
     [SerializeField] private string saveFileExtension = "sav";
+    public string MalTokenSaveName = "MALToken";
+    public string SpotifyTokenSaveName = "SpotifyToken";
 
     private OAuthAuthenticator malAuthenticator;
     private OAuthAuthenticator spotifyAuthenticator;
     private TaskCompletionSource<MALClient> malTcs;
     private TaskCompletionSource<SpotifyClient> spotifyTcs;
-    private TokenResponse savedMALToken;
-    private TokenResponse savedSpotifyToken;
+    public TokenResponse savedMALToken;
+    public TokenResponse savedSpotifyToken;
 
     protected override void Awake()
     {
@@ -60,13 +60,13 @@ public class AuthenticationController : Singleton<AuthenticationController>
 
     private async void AttemptRefreshTokens()
     {
-        savedMALToken = LoadSavedToken(malTokenSaveName);
-        savedSpotifyToken = LoadSavedToken(spotifyTokenSaveName);
+        savedMALToken = LoadSavedToken(MalTokenSaveName);
+        savedSpotifyToken = LoadSavedToken(SpotifyTokenSaveName);
 
         if (savedMALToken != null && await AttemptRefreshToken(savedMALToken.RefreshToken, malAuthenticator))
         {
             MALClient malClient = new(malAuthenticator.TokenResponse.AccessToken);
-            //SaveToken(malAuthenticator.TokenResponse, malTokenSaveName);  // MAL will seemingly issue an infinite number of Refresh Tokens with token obtained using Refresh Tokens
+            //SaveToken(malAuthenticator.TokenResponse, MalTokenSaveName);  // MAL will seemingly issue an infinite number of Refresh Tokens with token obtained using Refresh Tokens
 
             malTcs = new();
             malTcs.TrySetResult(malClient);
@@ -74,7 +74,7 @@ public class AuthenticationController : Singleton<AuthenticationController>
         if (savedSpotifyToken != null && await AttemptRefreshToken(savedSpotifyToken.RefreshToken, spotifyAuthenticator))
         {
             SpotifyClient spotifyClient = new(spotifyAuthenticator.TokenResponse.AccessToken);
-            //SaveToken(spotifyAuthenticator.TokenResponse, spotifyTokenSaveName);  // Spotify will only issue one RefreshToken. After using it to get a new token, said token will have a null Refresh Token value
+            //SaveToken(spotifyAuthenticator.TokenResponse, SpotifyTokenSaveName);  // Spotify will only issue one RefreshToken. After using it to get a new token, said token will have a null Refresh Token value
 
             spotifyTcs = new();
             spotifyTcs.TrySetResult(spotifyClient);
@@ -109,13 +109,20 @@ public class AuthenticationController : Singleton<AuthenticationController>
 
     private TokenResponse LoadSavedToken(string saveName)
     {
+        string serializedToken = GetTokenSaveData(saveName);
+        if (serializedToken == null) return null;
+
+        TokenResponse savedToken = JsonSerializer.Deserialize<TokenResponse>(serializedToken);
+        return savedToken;
+    }
+
+    public string GetTokenSaveData(string saveName)
+    {
         string savedTokenPath = Path.Combine(Application.persistentDataPath, $"{saveName}.{saveFileExtension}");
         if (!File.Exists(savedTokenPath)) return null;
 
         string serializedToken = File.ReadAllText(savedTokenPath);
-        TokenResponse savedToken = JsonSerializer.Deserialize<TokenResponse>(serializedToken);
-
-        return savedToken;
+        return serializedToken;
     }
 
     // Called by MALController to begin authentication process
@@ -152,7 +159,7 @@ public class AuthenticationController : Singleton<AuthenticationController>
 
         if (malAuthenticator.TokenResponse != null)
         {
-            SaveToken(malAuthenticator.TokenResponse, malTokenSaveName);
+            SaveToken(malAuthenticator.TokenResponse, MalTokenSaveName);
 
             MALClient malClient = new(malAuthenticator.TokenResponse.AccessToken);
             malTcs.TrySetResult(malClient);
@@ -166,7 +173,7 @@ public class AuthenticationController : Singleton<AuthenticationController>
 
         if (spotifyAuthenticator.TokenResponse != null)
         {
-            SaveToken(spotifyAuthenticator.TokenResponse, spotifyTokenSaveName);
+            SaveToken(spotifyAuthenticator.TokenResponse, SpotifyTokenSaveName);
 
             SpotifyClient spotifyClient = new(spotifyAuthenticator.TokenResponse.AccessToken);
             spotifyTcs.TrySetResult(spotifyClient);
