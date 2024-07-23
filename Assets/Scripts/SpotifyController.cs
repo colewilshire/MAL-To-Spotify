@@ -12,6 +12,7 @@ public class SpotifyController : Singleton<SpotifyController>
     [SerializeField] private Button spotifyLoginButton;
     [SerializeField] private string clientId;
     [SerializeField] private string clientSecret;
+    [SerializeField] private string playlistName = "Anime Opening Themes";
 
     private SpotifyClient spotifyClient;
 
@@ -27,24 +28,16 @@ public class SpotifyController : Singleton<SpotifyController>
         PrivateUser currentUser = await spotifyClient.UserProfile.Current();
         spotifyInputField.text = currentUser.Id;
 
-        PlaylistCreateRequest playlistCreateRequest = new("Anime Opening Themes");
+        PlaylistCreateRequest playlistCreateRequest = new(playlistName);
         FullPlaylist playlist = await spotifyClient.Playlists.Create(currentUser.Id, playlistCreateRequest);
 
         if (MALController.Instance.OpeningThemes != null)
         {
-            List<List<string>> pagedSongUris = new();
-            int batchSize = 100;
-            int index = 0;
+            HashSet<string> uniqueSongUris = new();
 
             foreach (KeyValuePair<int, Theme> kvp in MALController.Instance.OpeningThemes)
             {
                 Theme themeSong = kvp.Value;
-
-                // Spotify limits requests to a batch size of 100
-                if (index % batchSize == 0)
-                {
-                    pagedSongUris.Add(new List<string>());
-                }
 
                 if (themeSong != null && themeSong.Text != null)
                 {
@@ -52,20 +45,20 @@ public class SpotifyController : Singleton<SpotifyController>
 
                     if (songName != null)
                     {
-                        spotifyInputField.text = $"{index}: {songName}";
+                        spotifyInputField.text = songName;
 
                         SearchRequest searchRequest = new(SearchRequest.Types.Track, songName);
                         SearchResponse searchResponse = await spotifyClient.Search.Item(searchRequest);
 
                         if (searchResponse.Tracks.Items.Count > 0)
                         {
-                            pagedSongUris[index / batchSize].Add(searchResponse.Tracks.Items[0].Uri);
+                            uniqueSongUris.Add(searchResponse.Tracks.Items[0].Uri);
                         }
                     }
                 }
-
-                index++;
             }
+
+            List<List<string>> pagedSongUris = SplitIntoBatches(uniqueSongUris, 100);
 
             foreach (List<string> songUriPage in pagedSongUris)
             {
@@ -75,6 +68,29 @@ public class SpotifyController : Singleton<SpotifyController>
 
             spotifyInputField.text = "Done";
         }
+    }
+
+    private List<List<string>> SplitIntoBatches(HashSet<string> uniqueSongUris, int batchSize)
+    {
+        List<List<string>> pagedSongUris = new();
+        List<string> currentBatch = new();
+
+        foreach (string uri in uniqueSongUris)
+        {
+            if (currentBatch.Count == batchSize)
+            {
+                pagedSongUris.Add(currentBatch);
+                currentBatch = new List<string>();
+            }
+            currentBatch.Add(uri);
+        }
+
+        if (currentBatch.Count > 0)
+        {
+            pagedSongUris.Add(currentBatch);
+        }
+
+        return pagedSongUris;
     }
 
     public static string FormatSongName(string input)
@@ -87,9 +103,7 @@ public class SpotifyController : Singleton<SpotifyController>
         {
             return $"{match.Groups[1].Value} {match.Groups[2].Value}";
         }
-        else
-        {
-            return null;
-        }
+        
+        return null;
     }
 }
