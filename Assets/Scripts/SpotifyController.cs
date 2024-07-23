@@ -36,7 +36,7 @@ public class SpotifyController : Singleton<SpotifyController>
             int batchSize = 100;
             int index = 0;
 
-            foreach (var kvp in MALController.Instance.OpeningThemes)
+            foreach (KeyValuePair<int, Theme> kvp in MALController.Instance.OpeningThemes)
             {
                 Theme themeSong = kvp.Value;
 

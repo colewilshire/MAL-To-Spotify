@@ -242,4 +242,12 @@ public class MALController : Singleton<MALController>
         string serializedList = File.ReadAllText(savedListPath);
         return serializedList;
     }
+
+    public void ExportSongList()
+    {
+        string savedListPath = Path.Combine(Application.persistentDataPath, $"{SongListSaveName}.{saveFileExtension}");
+        if (!File.Exists(savedListPath)) return;
+
+        NativeFilePicker.ExportFile(savedListPath);
+    }
 }

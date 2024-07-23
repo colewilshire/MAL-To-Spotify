@@ -10,6 +10,7 @@ public class DebugMenu : Menu
     [SerializeField] private Button deleteSavedMALTokenButton;
     [SerializeField] private Button deleteSavedSpotifyTokenButton;
     [SerializeField] private Button printSavedSongListButton;
+    [SerializeField] private Button exportSavedSongListButton;
     [SerializeField] private Button mainMenuButton;
     [SerializeField] private TMP_InputField console;
 
@@ -22,6 +23,7 @@ public class DebugMenu : Menu
         deleteSavedMALTokenButton.onClick.AddListener(() => DeleteSavedToken(AuthenticationController.Instance.MalTokenSaveName));
         deleteSavedSpotifyTokenButton.onClick.AddListener(() => DeleteSavedToken(AuthenticationController.Instance.SpotifyTokenSaveName));
         printSavedSongListButton.onClick.AddListener(PrintSavedSongList);
+        exportSavedSongListButton.onClick.AddListener(MALController.Instance.ExportSongList);
         mainMenuButton.onClick.AddListener(() => MenuController.Instance.SetMenu(MenuState.Main));
     }
 
