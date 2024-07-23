@@ -93,17 +93,29 @@ public class SpotifyController : Singleton<SpotifyController>
         return pagedSongUris;
     }
 
-    public static string FormatSongName(string input)
+    public string FormatSongName(string input)
     {
+        // Remove leading "#number" or "#number:" patterns
+        string cleanedInput = Regex.Replace(input, "^#\\d+:?\\s*", "");
+
         // Define a regex pattern to capture the quoted substring and the substring after "by "
-        string pattern = "\"([^\"]*)\".*? by (.*)";
-        Match match = Regex.Match(input, pattern);
+        string pattern = "\"([^\"]*)\".*? by ([^\\(]*)";  // Updated to exclude content within parentheses
+        Match match = Regex.Match(cleanedInput, pattern);
 
         if (match.Success)
         {
-            return $"{match.Groups[1].Value} {match.Groups[2].Value}";
+            string songTitle = match.Groups[1].Value;
+            string artist = match.Groups[2].Value;
+
+            // Sanitize artist by removing special characters and normalizing
+            artist = Regex.Replace(artist, "[^a-zA-Z0-9\\s]", "").Trim();
+            
+            // Normalize spaces
+            artist = Regex.Replace(artist, "\\s+", " ");
+
+            return $"{songTitle} {artist}";
         }
-        
-        return null;
+
+        return input;
     }
 }
