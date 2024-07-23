@@ -36,7 +36,7 @@ public class MALController : Singleton<MALController>
         malLoginButton.interactable = false;
         seekAnimeButton.interactable = false;
 
-        // malClient = await AuthenticationController.Instance.AuthenticateMALClient();
+        malClient = await AuthenticationController.Instance.AuthenticateMALClient();
         OpeningThemes = LoadThemeSongList(SongListSaveName);
 
         if (OpeningThemes == null)
