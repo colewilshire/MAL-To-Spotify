@@ -34,34 +34,37 @@ public class SpotifyController : Singleton<SpotifyController>
         {
             List<List<string>> pagedSongUris = new();
             int batchSize = 100;
+            int index = 0;
 
-            for (int i = 0; i < MALController.Instance.OpeningThemes.Count; ++i)
+            foreach (var kvp in MALController.Instance.OpeningThemes)
             {
-                Theme themeSong = MALController.Instance.OpeningThemes[i];
+                Theme themeSong = kvp.Value;
 
                 // Spotify limits requests to a batch size of 100
-                if (i % batchSize == 0)
+                if (index % batchSize == 0)
                 {
                     pagedSongUris.Add(new List<string>());
                 }
-                
+
                 if (themeSong != null && themeSong.Text != null)
                 {
                     string songName = FormatSongName(themeSong.Text);
 
                     if (songName != null)
                     {
-                        spotifyInputField.text = $"{i}: {songName}";
+                        spotifyInputField.text = $"{index}: {songName}";
 
                         SearchRequest searchRequest = new(SearchRequest.Types.Track, songName);
                         SearchResponse searchResponse = await spotifyClient.Search.Item(searchRequest);
 
                         if (searchResponse.Tracks.Items.Count > 0)
                         {
-                            pagedSongUris[i / batchSize].Add(searchResponse.Tracks.Items[0].Uri);
+                            pagedSongUris[index / batchSize].Add(searchResponse.Tracks.Items[0].Uri);
                         }
                     }
                 }
+
+                index++;
             }
 
             foreach (List<string> songUriPage in pagedSongUris)

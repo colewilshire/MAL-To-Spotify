@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using System.IO;
 using System.Text.Json;
+using System.Linq;
 
 public class MALController : Singleton<MALController>
 {
@@ -14,9 +15,9 @@ public class MALController : Singleton<MALController>
 
     private MALClient malClient;
 
-    private int ind = 0;
+    private Dictionary<int, Theme>.Enumerator enumerator;
     private AnimeListResponse fullAnimeList;
-    public List<Theme> OpeningThemes;
+    public Dictionary<int, Theme> OpeningThemes;
 
     private int currentAnimeIndex = 0;
     private int iteration = 0;
@@ -35,7 +36,7 @@ public class MALController : Singleton<MALController>
         malLoginButton.interactable = false;
         seekAnimeButton.interactable = false;
 
-        //malClient = await AuthenticationController.Instance.AuthenticateMALClient();
+        // malClient = await AuthenticationController.Instance.AuthenticateMALClient();
         OpeningThemes = LoadThemeSongList(SongListSaveName);
 
         if (OpeningThemes == null)
@@ -45,18 +46,24 @@ public class MALController : Singleton<MALController>
                 fullAnimeList = await GetAnimeListAsync();
             }
 
-            if (fullAnimeList != null)
+            List<Theme> allThemes = new();
+
+            while (currentAnimeIndex < fullAnimeList.Data.Count)
             {
-                OpeningThemes = new();
-
-                while (currentAnimeIndex < fullAnimeList.Data.Count)
-                {
-                    List<Theme> tempOpeningThemes = await GetAnimeListThemeSongsAsync(fullAnimeList, currentAnimeIndex);
-                    OpeningThemes.AddRange(tempOpeningThemes);
-                }
-
-                SaveThemeSongList(OpeningThemes, SongListSaveName);
+                List<Theme> tempOpeningThemes = await GetAnimeListThemeSongsAsync(fullAnimeList, currentAnimeIndex);
+                allThemes.AddRange(tempOpeningThemes);
             }
+
+            OpeningThemes = allThemes
+                .GroupBy(theme => theme.Id)
+                .ToDictionary(group => group.Key, group => group.First());
+
+            SaveThemeSongList(OpeningThemes, SongListSaveName);
+        }
+
+        if (OpeningThemes != null)
+        {
+            enumerator = OpeningThemes.GetEnumerator();
         }
 
         SeekAnime();
@@ -64,14 +71,15 @@ public class MALController : Singleton<MALController>
         malLoginButton.interactable = true;
     }
 
+
     private void SeekAnime()
     {
-        if (ind < OpeningThemes.Count)
-        {
-            string themeName = OpeningThemes[ind].Text;
+        bool success = enumerator.MoveNext();
 
-            malInputField.text = $"{ind}. {themeName}";
-            ++ind;
+        if (success)
+        {
+            KeyValuePair<int, Theme> current = enumerator.Current;
+            malInputField.text = $"{current.Key}. {current.Value.Text}";
         }
     }
 
@@ -140,7 +148,6 @@ public class MALController : Singleton<MALController>
     {
         AnimeListResponse animeList;
 
-        ind = 0;
         malInputField.text = $"Loading...";
 
         if (nextPageUrl != null)
@@ -201,10 +208,11 @@ public class MALController : Singleton<MALController>
             currentAnimeIndex++;
         }
 
-        return themeSongs;
+    return themeSongs;
     }
 
-    private void SaveThemeSongList(List<Theme> themeSongList, string saveName)
+
+    private void SaveThemeSongList(Dictionary<int, Theme> themeSongList, string saveName)
     {
         string savedListPath = Path.Combine(Application.persistentDataPath, $"{saveName}.{saveFileExtension}");
 
@@ -217,12 +225,12 @@ public class MALController : Singleton<MALController>
         File.WriteAllText(savedListPath, serializedList);
     }
 
-    private List<Theme> LoadThemeSongList(string saveName)
+    private Dictionary<int, Theme> LoadThemeSongList(string saveName)
     {
         string serializedList = GetSerializedSongList(saveName);
         if (serializedList == null) return null;
 
-        List<Theme> savedList = JsonSerializer.Deserialize<List<Theme>>(serializedList);
+        Dictionary<int, Theme> savedList = JsonSerializer.Deserialize<Dictionary<int, Theme>>(serializedList);
         return savedList;
     }
 
