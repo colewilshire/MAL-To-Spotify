@@ -23,6 +23,7 @@ public class SpotifyController : Singleton<SpotifyController>
 
     private async Task Test()
     {
+        spotifyLoginButton.interactable = false;
         spotifyClient = await AuthenticationController.Instance.AuthenticateSpotifyClient();
 
         PrivateUser currentUser = await spotifyClient.UserProfile.Current();
@@ -42,6 +43,7 @@ public class SpotifyController : Singleton<SpotifyController>
                 if (themeSong != null && themeSong.Text != null)
                 {
                     string songName = FormatSongName(themeSong.Text);
+                    kvp.Value.SpotifyQuery = songName;
 
                     if (songName != null)
                     {
@@ -53,6 +55,9 @@ public class SpotifyController : Singleton<SpotifyController>
                         if (searchResponse.Tracks.Items.Count > 0)
                         {
                             uniqueSongUris.Add(searchResponse.Tracks.Items[0].Uri);
+
+                            kvp.Value.SpotifyName = searchResponse.Tracks.Items[0].Name;
+                            kvp.Value.SpotifyArtist = searchResponse.Tracks.Items[0].Artists[0].Name;
                         }
                     }
                 }
@@ -68,6 +73,8 @@ public class SpotifyController : Singleton<SpotifyController>
 
             spotifyInputField.text = "Done";
         }
+
+        spotifyLoginButton.interactable = true;
     }
 
     private List<List<string>> SplitIntoBatches(HashSet<string> uniqueSongUris, int batchSize)
@@ -106,14 +113,11 @@ public class SpotifyController : Singleton<SpotifyController>
         {
             string songTitle = match.Groups[1].Value;
             string artist = match.Groups[2].Value;
-
-            // Sanitize artist by removing special characters and normalizing
-            artist = Regex.Replace(artist, "[^a-zA-Z0-9\\s]", "").Trim();
             
             // Normalize spaces
             artist = Regex.Replace(artist, "\\s+", " ");
 
-            return $"{songTitle} {artist}";
+            return $"{songTitle} {artist}".Trim();
         }
 
         return input;

@@ -245,6 +245,10 @@ public class MALController : Singleton<MALController>
 
     public void ExportSongList()
     {
+        //
+        SaveThemeSongList(OpeningThemes, SongListSaveName);
+        //
+
         string savedListPath = Path.Combine(Application.persistentDataPath, $"{SongListSaveName}.{saveFileExtension}");
         if (!File.Exists(savedListPath)) return;
 
