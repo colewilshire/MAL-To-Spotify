@@ -1,16 +1,19 @@
-using System.Threading.Tasks;
+using System;
+using System.IO;
+using System.Linq;
 using System.Collections.Generic;
+using System.Threading.Tasks;
+using System.Text.RegularExpressions;
+using System.Text.Json;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using System.IO;
-using System.Text.Json;
-using System.Linq;
 
 public class MALController : Singleton<MALController>
 {
     [SerializeField] private TMP_InputField malInputField;
     [SerializeField] private Button malLoginButton;
+    [SerializeField] private Button spotifyLoginButton;
     [SerializeField] private Button seekAnimeButton;
 
     private MALClient malClient;
@@ -34,6 +37,7 @@ public class MALController : Singleton<MALController>
     private async Task Test()
     {
         malLoginButton.interactable = false;
+        spotifyLoginButton.interactable = false;
         seekAnimeButton.interactable = false;
 
         malClient = await AuthenticationController.Instance.AuthenticateMALClient();
@@ -69,6 +73,7 @@ public class MALController : Singleton<MALController>
         SeekAnime();
         seekAnimeButton.interactable = true;
         malLoginButton.interactable = true;
+        spotifyLoginButton.interactable = true;
     }
 
 
@@ -195,6 +200,7 @@ public class MALController : Singleton<MALController>
                 {
                     foreach (Theme themeSong in animeDetails.OpeningThemes)
                     {
+                        themeSong.SongInfo = ExtractSongInfo(themeSong.Text);
                         themeSongs.Add(themeSong);
                     }
                 }
@@ -210,7 +216,6 @@ public class MALController : Singleton<MALController>
 
     return themeSongs;
     }
-
 
     private void SaveThemeSongList(Dictionary<int, Theme> themeSongList, string saveName)
     {
@@ -245,13 +250,114 @@ public class MALController : Singleton<MALController>
 
     public void ExportSongList()
     {
-        //
         SaveThemeSongList(OpeningThemes, SongListSaveName);
-        //
 
         string savedListPath = Path.Combine(Application.persistentDataPath, $"{SongListSaveName}.{saveFileExtension}");
         if (!File.Exists(savedListPath)) return;
 
         NativeFilePicker.ExportFile(savedListPath);
     }
+
+    public static SongInfo ExtractSongInfo(string input)
+    {
+        // Remove initial pattern "#number:" or "#number" and trim
+        string pattern = @"^#\d+:?\s*";
+        string cleanedInput = Regex.Replace(input, pattern, "").Trim();
+
+        // Split the string at the first occurrence of " by " into title and artist
+        int byIndex = cleanedInput.IndexOf(" by ", StringComparison.OrdinalIgnoreCase);
+        if (byIndex > -1)
+        {
+            string title = cleanedInput.Substring(0, byIndex).Trim();
+            string artist = cleanedInput.Substring(byIndex + 4).Trim();
+
+            // Return SongInfo object with extracted title and artist
+            SongInfo songInfo = new()
+            {
+                MALSongInfo = new()
+                {
+                    Titles = SplitString(title),
+                    Artists = SplitString(artist)
+                },
+                SpotifySongInfo = new()
+            };
+
+            songInfo.SpotifySongInfo.Query = $"{songInfo.MALSongInfo.Titles[0]} {songInfo.MALSongInfo.Artists[0]}";
+
+            return songInfo;
+        }
+
+        // Return null if the string does not match the expected format
+        return null;
+    }
+
+    private static List<string> SplitString(string input)
+    {
+        List<string> parts = new();
+        string pattern = @"(.*?)\s*\((.*?)\)";
+        Regex regex = new(pattern);
+        MatchCollection matches = regex.Matches(input);
+        bool foundOutsideParentheses = false;
+
+        foreach (Match match in matches)
+        {
+            string outsideParentheses = match.Groups[1].Value.Trim();
+            string insideParentheses = match.Groups[2].Value.Trim();
+
+            if (!string.IsNullOrEmpty(outsideParentheses))
+            {
+                parts.Add(outsideParentheses);
+                foundOutsideParentheses = true;
+            }
+            if (!string.IsNullOrEmpty(insideParentheses) && !insideParentheses.StartsWith("ep", StringComparison.OrdinalIgnoreCase))
+            {
+                parts.Add(insideParentheses);
+            }
+        }
+
+        if (!foundOutsideParentheses && matches.Count == 0)
+        {
+            parts.Add(input.Trim());
+        }
+
+        return parts;
+    }
+
+    // public void GetStats()
+    // {
+    //     int titleMismatches = 0;
+    //     int artistMismatches = 0;
+    //     int queryMismatches = 0;
+
+    //     foreach (KeyValuePair<int, Theme> kvp in OpeningThemes)
+    //     {
+    //         string s = $"{kvp.Value.SpotifyName} {kvp.Value.SpotifyArtist}";
+    //         string malArtist = $"{kvp.Value.MalArtist}".Trim();
+
+    //         if (kvp.Value.MalName != kvp.Value.SpotifyName)
+    //         {
+    //             //Debug.Log($"{kvp.Value.MalName} : {kvp.Value.SpotifyName}");
+    //             titleMismatches++;
+    //         }
+
+    //         if (malArtist != kvp.Value.SpotifyArtist)
+    //         {
+    //             Debug.Log($"{malArtist} : {kvp.Value.SpotifyArtist}");
+    //             artistMismatches++;
+    //         }
+
+    //         if (s != kvp.Value.SpotifyQuery)
+    //         {
+    //             queryMismatches++;
+    //         }
+    //     }
+
+    //     float a = (float) titleMismatches/OpeningThemes.Count*100;
+    //     float b = (float) artistMismatches/OpeningThemes.Count*100;
+    //     float c = (float) queryMismatches/OpeningThemes.Count*100;
+
+    //     Debug.Log($"Title: {titleMismatches}: {a}%"); // 67.65%
+    //     Debug.Log($"Artist: {artistMismatches}: {b}%"); // 55.22%
+    //     Debug.Log($"Query: {queryMismatches}: {c}%");
+    // }
 }

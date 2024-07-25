@@ -4830,8 +4830,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   spotifyInputField: {fileID: 784663974}
   spotifyLoginButton: {fileID: 806820085}
+  malLoginButton: {fileID: 2068680215}
   clientId: 37a5e94c391748f6b24c4b2dd181c9b0
   clientSecret: 1d5a0639c05f43eda669a56124e8747a
+  playlistName: Anime Opening Themes
 --- !u!4 &1785672226
 Transform:
   m_ObjectHideFlags: 0
@@ -5196,6 +5198,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   malInputField: {fileID: 450292469}
   malLoginButton: {fileID: 2068680215}
+  spotifyLoginButton: {fileID: 806820085}
   seekAnimeButton: {fileID: 1247413483}
   saveFileExtension: sav
   SongListSaveName: OpeningThemes

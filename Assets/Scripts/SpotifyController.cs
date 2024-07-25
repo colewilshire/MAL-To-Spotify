@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -10,6 +11,7 @@ public class SpotifyController : Singleton<SpotifyController>
 {
     [SerializeField] private TMP_InputField spotifyInputField;
     [SerializeField] private Button spotifyLoginButton;
+    [SerializeField] private Button malLoginButton;
     [SerializeField] private string clientId;
     [SerializeField] private string clientSecret;
     [SerializeField] private string playlistName = "Anime Opening Themes";
@@ -24,6 +26,8 @@ public class SpotifyController : Singleton<SpotifyController>
     private async Task Test()
     {
         spotifyLoginButton.interactable = false;
+        malLoginButton.interactable = false;
+
         spotifyClient = await AuthenticationController.Instance.AuthenticateSpotifyClient();
 
         PrivateUser currentUser = await spotifyClient.UserProfile.Current();
@@ -38,27 +42,21 @@ public class SpotifyController : Singleton<SpotifyController>
 
             foreach (KeyValuePair<int, Theme> kvp in MALController.Instance.OpeningThemes)
             {
-                Theme themeSong = kvp.Value;
+                string query = kvp.Value.SongInfo.SpotifySongInfo.Query;
 
-                if (themeSong != null && themeSong.Text != null)
+                if (query != null)
                 {
-                    string songName = FormatSongName(themeSong.Text);
-                    kvp.Value.SpotifyQuery = songName;
+                    spotifyInputField.text = query;
 
-                    if (songName != null)
+                    SearchRequest searchRequest = new(SearchRequest.Types.Track, query);
+                    SearchResponse searchResponse = await spotifyClient.Search.Item(searchRequest);
+
+                    if (searchResponse.Tracks.Items.Count > 0)
                     {
-                        spotifyInputField.text = songName;
+                        uniqueSongUris.Add(searchResponse.Tracks.Items[0].Uri);
 
-                        SearchRequest searchRequest = new(SearchRequest.Types.Track, songName);
-                        SearchResponse searchResponse = await spotifyClient.Search.Item(searchRequest);
-
-                        if (searchResponse.Tracks.Items.Count > 0)
-                        {
-                            uniqueSongUris.Add(searchResponse.Tracks.Items[0].Uri);
-
-                            kvp.Value.SpotifyName = searchResponse.Tracks.Items[0].Name;
-                            kvp.Value.SpotifyArtist = searchResponse.Tracks.Items[0].Artists[0].Name;
-                        }
+                        kvp.Value.SongInfo.SpotifySongInfo.Title = searchResponse.Tracks.Items[0].Name;
+                        kvp.Value.SongInfo.SpotifySongInfo.Artist = searchResponse.Tracks.Items[0].Artists[0].Name;
                     }
                 }
             }
@@ -75,6 +73,7 @@ public class SpotifyController : Singleton<SpotifyController>
         }
 
         spotifyLoginButton.interactable = true;
+        malLoginButton.interactable = true;
     }
 
     private List<List<string>> SplitIntoBatches(HashSet<string> uniqueSongUris, int batchSize)
@@ -98,28 +97,5 @@ public class SpotifyController : Singleton<SpotifyController>
         }
 
         return pagedSongUris;
-    }
-
-    public string FormatSongName(string input)
-    {
-        // Remove leading "#number" or "#number:" patterns
-        string cleanedInput = Regex.Replace(input, "^#\\d+:?\\s*", "");
-
-        // Define a regex pattern to capture the quoted substring and the substring after "by "
-        string pattern = "\"([^\"]*)\".*? by ([^\\(]*)";  // Updated to exclude content within parentheses
-        Match match = Regex.Match(cleanedInput, pattern);
-
-        if (match.Success)
-        {
-            string songTitle = match.Groups[1].Value;
-            string artist = match.Groups[2].Value;
-            
-            // Normalize spaces
-            artist = Regex.Replace(artist, "\\s+", " ");
-
-            return $"{songTitle} {artist}".Trim();
-        }
-
-        return input;
     }
 }

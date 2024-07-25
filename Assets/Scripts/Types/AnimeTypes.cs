@@ -125,16 +125,43 @@ public class Status
     public string PlanToWatch { get; set; }
 }
 
+// public class Theme
+// {
+//     public int Id { get; set; }
+//     public int AnimeId { get; set; }
+//     public string Text { get; set; }
+//     public string MalName { get; set; }
+//     public string MalArtist { get; set; }
+//     public string SpotifyQuery { get; set; }
+//     public string SpotifyName { get; set; }
+//     public string SpotifyArtist { get; set; }
+// }
+
 public class Theme
 {
     public int Id { get; set; }
     public int AnimeId { get; set; }
     public string Text { get; set; }
-    public string MalName { get; set; }
-    public string MalArtist { get; set; }
-    public string SpotifyQuery { get; set; }
-    public string SpotifyName { get; set; }
-    public string SpotifyArtist { get; set; }
+    public SongInfo SongInfo { get; set; }
+}
+
+public class SongInfo
+{
+    public MALSongInfo MALSongInfo { get; set; }
+    public SpotifySongInfo SpotifySongInfo { get; set; }
+}
+
+public class MALSongInfo
+{
+    public List<string> Titles { get; set; }
+    public List<string> Artists { get; set; }
+}
+
+public class SpotifySongInfo
+{
+    public string Title { get; set; }
+    public string Artist { get; set; }
+    public string Query { get; set; }
 }
 
 public class AnimeListResponse
