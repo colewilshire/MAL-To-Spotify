@@ -130,6 +130,8 @@ public class Theme
     public int Id { get; set; }
     public int AnimeId { get; set; }
     public string Text { get; set; }
+    public string MalName { get; set; }
+    public string MalArtist { get; set; }
     public string SpotifyQuery { get; set; }
     public string SpotifyName { get; set; }
     public string SpotifyArtist { get; set; }
