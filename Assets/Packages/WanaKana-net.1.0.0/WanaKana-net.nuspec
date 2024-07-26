@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
+  <metadata>
+    <id>WanaKana-net</id>
+    <version>1.0.0</version>
+    <authors>Martin Zikmund</authors>
+    <owners>Martin Zikmund</owners>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <license type="expression">MIT</license>
+    <licenseUrl>https://licenses.nuget.org/MIT</licenseUrl>
+    <icon>wanikani.png</icon>
+    <projectUrl>https://github.com/MartinZikmund/WanaKana-net</projectUrl>
+    <iconUrl>https://raw.githubusercontent.com/MartinZikmund/WanaKana-net/dev/images/wanikani.png</iconUrl>
+    <description>.NET Standard port of the WanaKana JavaScript Japanese transliterator</description>
+    <copyright>Copyright Martin Zikmund 2020</copyright>
+    <tags>wanakani, wanikani, net, netstandard, japanese, hiragana, romaji, kana, katakana</tags>
+    <repository type="GitHub" url="https://github.com/MartinZikmund/WanaKana-net" />
+    <dependencies>
+      <group targetFramework=".NETStandard2.0" />
+    </dependencies>
+  </metadata>
+</package>

@@ -32,6 +32,8 @@ public class MALController : Singleton<MALController>
     {
         malLoginButton.onClick.AddListener(async () => await Test());
         seekAnimeButton.onClick.AddListener(SeekAnime);
+
+        Debug.Log(StringManipulator.Test());
     }
 
     private async Task Test()
@@ -203,7 +205,7 @@ public class MALController : Singleton<MALController>
                 {
                     foreach (Theme themeSong in animeDetails.OpeningThemes)
                     {
-                        themeSong.SongInfo = ExtractSongInfo(themeSong.Text);
+                        themeSong.SongInfo = StringManipulator.ExtractSongInfo(themeSong.Text);
                         themeSongs.Add(themeSong);
                     }
                 }
@@ -261,71 +263,6 @@ public class MALController : Singleton<MALController>
         NativeFilePicker.ExportFile(savedListPath);
     }
 
-    public static SongInfo ExtractSongInfo(string input)
-    {
-        // Remove initial pattern "#number:" or "#number" and trim
-        string pattern = @"^#\d+:?\s*";
-        string cleanedInput = Regex.Replace(input, pattern, "").Trim();
-
-        // Split the string at the first occurrence of " by " into title and artist
-        int byIndex = cleanedInput.IndexOf(" by ", StringComparison.OrdinalIgnoreCase);
-        if (byIndex > -1)
-        {
-            string title = cleanedInput.Substring(0, byIndex).Trim();
-            string artist = cleanedInput.Substring(byIndex + 4).Trim();
-
-            // Return SongInfo object with extracted title and artist
-            SongInfo songInfo = new()
-            {
-                MALSongInfo = new()
-                {
-                    Titles = SplitString(title),
-                    Artists = SplitString(artist)
-                },
-                SpotifySongInfo = new()
-            };
-
-            songInfo.SpotifySongInfo.Query = $"{songInfo.MALSongInfo.Titles[0]} {songInfo.MALSongInfo.Artists[0]}";
-
-            return songInfo;
-        }
-
-        // Return null if the string does not match the expected format
-        return null;
-    }
-
-    private static List<string> SplitString(string input)
-    {
-        List<string> parts = new();
-        string pattern = @"(.*?)\s*\((.*?)\)";
-        Regex regex = new(pattern);
-        MatchCollection matches = regex.Matches(input);
-        bool foundOutsideParentheses = false;
-
-        foreach (Match match in matches)
-        {
-            string outsideParentheses = match.Groups[1].Value.Trim();
-            string insideParentheses = match.Groups[2].Value.Trim();
-
-            if (!string.IsNullOrEmpty(outsideParentheses))
-            {
-                parts.Add(outsideParentheses);
-                foundOutsideParentheses = true;
-            }
-            if (!string.IsNullOrEmpty(insideParentheses) && !insideParentheses.StartsWith("ep", StringComparison.OrdinalIgnoreCase))
-            {
-                parts.Add(insideParentheses);
-            }
-        }
-
-        if (!foundOutsideParentheses && matches.Count == 0)
-        {
-            parts.Add(input.Trim());
-        }
-
-        return parts;
-    }
-
     public void GetStats()
     {
         int titleMismatches = 0;
@@ -337,9 +274,20 @@ public class MALController : Singleton<MALController>
             
             foreach (string title in kvp.Value.SongInfo.MALSongInfo.Titles)
             {
-                if (CompareStrings(title, kvp.Value.SongInfo.SpotifySongInfo.Title) == true)
+                if (title != null && kvp.Value.SongInfo.SpotifySongInfo.Title != null)  //
                 {
-                    titleFound = true;
+                    string processedMALTitle = StringManipulator.ProcessString(title);
+                    string processedSpotifyTitle = StringManipulator.ProcessString(kvp.Value.SongInfo.SpotifySongInfo.Title);
+
+                    if (StringManipulator.CompareStrings(processedMALTitle, processedSpotifyTitle))
+                    {
+                        titleFound = true;
+                    }
+                    else if (StringManipulator.CompareHiragana(processedMALTitle, processedSpotifyTitle))
+                    {
+                        //Debug.Log(title);
+                        titleFound = true;
+                    }
                 }
             }
 
@@ -347,8 +295,8 @@ public class MALController : Singleton<MALController>
             {
                 titleMismatches++;
 
-                string processedStr1 = kvp.Value.SongInfo.MALSongInfo.Titles[0].Replace(" ", "").ToLower().Trim('"');
-                string processedStr2 = kvp.Value.SongInfo.SpotifySongInfo.Title.Replace(" ", "").ToLower();
+                string processedStr1 = StringManipulator.ProcessString(kvp.Value.SongInfo.MALSongInfo.Titles[0]);
+                string processedStr2 = StringManipulator.ProcessString(kvp.Value.SongInfo.SpotifySongInfo.Title);
                 Debug.Log($"{processedStr1} : {processedStr2}");
             }
 
@@ -368,7 +316,7 @@ public class MALController : Singleton<MALController>
             //     titleMismatches++;
             // }
 
-            if (CompareStrings(kvp.Value.SongInfo.MALSongInfo.Artists[0], kvp.Value.SongInfo.SpotifySongInfo.Artist) == false)
+            if (StringManipulator.CompareStrings(kvp.Value.SongInfo.MALSongInfo.Artists[0], kvp.Value.SongInfo.SpotifySongInfo.Artist) == false)
             {
                 //Debug.Log($"{malArtist} : {kvp.Value.SongInfo.SpotifySongInfo.Artist}");
                 artistMismatches++;
@@ -378,24 +326,7 @@ public class MALController : Singleton<MALController>
         float a = (float) titleMismatches/OpeningThemes.Count*100;
         float b = (float) artistMismatches/OpeningThemes.Count*100;
 
-        Debug.Log($"Title: {titleMismatches}: {a}%"); // 67.65% // 61.41%      //51.97% //31.3%
+        Debug.Log($"Title: {titleMismatches}: {a}%"); // 67.65% // 61.41%      //51.97% //31.3% //30.71%    //29.72%
         Debug.Log($"Artist: {artistMismatches}: {b}%"); // 55.22%   // 56.89%      //56.89 //46.26%
-    }
-
-    public static bool CompareStrings(string str1, string str2)
-    {
-        //
-        if (str1 == null || str2 == null)
-        {
-            return true;
-        }
-        //
-
-        // Strip both strings of spaces and convert to lower case
-        string processedStr1 = str1.Replace(" ", "").ToLower().Trim('"');
-        string processedStr2 = str2.Replace(" ", "").ToLower();
-        
-        // Check if either string contains the other
-        return processedStr1.Contains(processedStr2) || processedStr2.Contains(processedStr1);
     }
 }
