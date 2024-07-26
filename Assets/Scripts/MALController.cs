@@ -40,8 +40,11 @@ public class MALController : Singleton<MALController>
         spotifyLoginButton.interactable = false;
         seekAnimeButton.interactable = false;
 
-        malClient = await AuthenticationController.Instance.AuthenticateMALClient();
+        //malClient = await AuthenticationController.Instance.AuthenticateMALClient();
         OpeningThemes = LoadThemeSongList(SongListSaveName);
+        GetStats();
+        //
+        return;
 
         if (OpeningThemes == null)
         {
@@ -323,41 +326,76 @@ public class MALController : Singleton<MALController>
         return parts;
     }
 
-    // public void GetStats()
-    // {
-    //     int titleMismatches = 0;
-    //     int artistMismatches = 0;
-    //     int queryMismatches = 0;
+    public void GetStats()
+    {
+        int titleMismatches = 0;
+        int artistMismatches = 0;
 
-    //     foreach (KeyValuePair<int, Theme> kvp in OpeningThemes)
-    //     {
-    //         string s = $"{kvp.Value.SpotifyName} {kvp.Value.SpotifyArtist}";
-    //         string malArtist = $"{kvp.Value.MalArtist}".Trim();
+        foreach (KeyValuePair<int, Theme> kvp in OpeningThemes)
+        {
+            bool titleFound = false;
+            
+            foreach (string title in kvp.Value.SongInfo.MALSongInfo.Titles)
+            {
+                if (CompareStrings(title, kvp.Value.SongInfo.SpotifySongInfo.Title) == true)
+                {
+                    titleFound = true;
+                }
+            }
 
-    //         if (kvp.Value.MalName != kvp.Value.SpotifyName)
-    //         {
-    //             //Debug.Log($"{kvp.Value.MalName} : {kvp.Value.SpotifyName}");
-    //             titleMismatches++;
-    //         }
+            if (titleFound == false)
+            {
+                titleMismatches++;
 
-    //         if (malArtist != kvp.Value.SpotifyArtist)
-    //         {
-    //             Debug.Log($"{malArtist} : {kvp.Value.SpotifyArtist}");
-    //             artistMismatches++;
-    //         }
+                string processedStr1 = kvp.Value.SongInfo.MALSongInfo.Titles[0].Replace(" ", "").ToLower().Trim('"');
+                string processedStr2 = kvp.Value.SongInfo.SpotifySongInfo.Title.Replace(" ", "").ToLower();
+                Debug.Log($"{processedStr1} : {processedStr2}");
+            }
 
-    //         if (s != kvp.Value.SpotifyQuery)
-    //         {
-    //             queryMismatches++;
-    //         }
-    //     }
+            // // Check if index 0 matches
+            // if (kvp.Value.SongInfo.MALSongInfo.Titles[0].Trim('"') == kvp.Value.SongInfo.SpotifySongInfo.Title)
+            // {
+                
+            // }
+            // // Chcek if in
+            // else if (kvp.Value.SongInfo.MALSongInfo.Titles.Count > 1 && kvp.Value.SongInfo.MALSongInfo.Titles[1] == kvp.Value.SongInfo.SpotifySongInfo.Title)
+            // {
 
-    //     float a = (float) titleMismatches/OpeningThemes.Count*100;
-    //     float b = (float) artistMismatches/OpeningThemes.Count*100;
-    //     float c = (float) queryMismatches/OpeningThemes.Count*100;
+            // }
+            // else
+            // {
+            //     Debug.Log($"{kvp.Value.SongInfo.MALSongInfo.Titles[0].Trim('"')} : {kvp.Value.SongInfo.SpotifySongInfo.Title}");
+            //     titleMismatches++;
+            // }
 
-    //     Debug.Log($"Title: {titleMismatches}: {a}%"); // 67.65%
-    //     Debug.Log($"Artist: {artistMismatches}: {b}%"); // 55.22%
-    //     Debug.Log($"Query: {queryMismatches}: {c}%");
-    // }
+            if (CompareStrings(kvp.Value.SongInfo.MALSongInfo.Artists[0], kvp.Value.SongInfo.SpotifySongInfo.Artist) == false)
+            {
+                //Debug.Log($"{malArtist} : {kvp.Value.SongInfo.SpotifySongInfo.Artist}");
+                artistMismatches++;
+            }
+        }
+
+        float a = (float) titleMismatches/OpeningThemes.Count*100;
+        float b = (float) artistMismatches/OpeningThemes.Count*100;
+
+        Debug.Log($"Title: {titleMismatches}: {a}%"); // 67.65% // 61.41%      //51.97% //31.3%
+        Debug.Log($"Artist: {artistMismatches}: {b}%"); // 55.22%   // 56.89%      //56.89 //46.26%
+    }
+
+    public static bool CompareStrings(string str1, string str2)
+    {
+        //
+        if (str1 == null || str2 == null)
+        {
+            return true;
+        }
+        //
+
+        // Strip both strings of spaces and convert to lower case
+        string processedStr1 = str1.Replace(" ", "").ToLower().Trim('"');
+        string processedStr2 = str2.Replace(" ", "").ToLower();
+        
+        // Check if either string contains the other
+        return processedStr1.Contains(processedStr2) || processedStr2.Contains(processedStr1);
+    }
 }
