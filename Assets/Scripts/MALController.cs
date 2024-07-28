@@ -6,8 +6,6 @@ using System.Text.Json;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using WanaKanaNet;
-using WanaKanaNet.Helpers;
 
 public class MALController : Singleton<MALController>
 {
@@ -25,8 +23,8 @@ public class MALController : Singleton<MALController>
     private int currentAnimeIndex = 0;
     private int iteration = 0;
 
-    [SerializeField] private string saveFileExtension = "sav";
     public string SongListSaveName = "OpeningThemes";
+    public string SaveFileExtension = "sav";
 
     private void Start()
     {
@@ -42,7 +40,7 @@ public class MALController : Singleton<MALController>
 
         //malClient = await AuthenticationController.Instance.AuthenticateMALClient();
         OpeningThemes = LoadThemeSongList(SongListSaveName);
-        GetStats();
+        DebugController.Instance.GetStats(OpeningThemes);
         //
         return;
 
@@ -217,12 +215,12 @@ public class MALController : Singleton<MALController>
             currentAnimeIndex++;
         }
 
-    return themeSongs;
+        return themeSongs;
     }
 
     private void SaveThemeSongList(Dictionary<int, Theme> themeSongList, string saveName)
     {
-        string savedListPath = Path.Combine(Application.persistentDataPath, $"{saveName}.{saveFileExtension}");
+        string savedListPath = Path.Combine(Application.persistentDataPath, $"{saveName}.{SaveFileExtension}");
 
         JsonSerializerOptions jsonSerializerOptions = new()
         {
@@ -244,111 +242,10 @@ public class MALController : Singleton<MALController>
 
     public string GetSerializedSongList(string saveName)
     {
-        string savedListPath = Path.Combine(Application.persistentDataPath, $"{saveName}.{saveFileExtension}");
+        string savedListPath = Path.Combine(Application.persistentDataPath, $"{saveName}.{SaveFileExtension}");
         if (!File.Exists(savedListPath)) return null;
 
         string serializedList = File.ReadAllText(savedListPath);
         return serializedList;
-    }
-
-    public void ExportSongList()
-    {
-        SaveThemeSongList(OpeningThemes, SongListSaveName);
-
-        string savedListPath = Path.Combine(Application.persistentDataPath, $"{SongListSaveName}.{saveFileExtension}");
-        if (!File.Exists(savedListPath)) return;
-
-        NativeFilePicker.ExportFile(savedListPath);
-    }
-
-    public void GetStats()
-    {
-        int titleMismatches = 0;
-        int artistMismatches = 0;
-
-        foreach (KeyValuePair<int, Theme> kvp in OpeningThemes)
-        {
-            bool titleFound = false;
-            bool artistFound = false;
-            
-            foreach (string title in kvp.Value.SongInfo.MALSongInfo.Titles)
-            {
-                if (title != null && kvp.Value.SongInfo.SpotifySongInfo.Title != null)  //
-                {
-                    string processedMALTitle = StringManipulator.ProcessString(title);
-                    string processedSpotifyTitle = StringManipulator.ProcessString(kvp.Value.SongInfo.SpotifySongInfo.Title);
-
-                    if (StringManipulator.CompareStrings(processedMALTitle, processedSpotifyTitle))
-                    {
-                        titleFound = true;
-                    }
-                    else if (StringManipulator.CompareHiragana(processedMALTitle, processedSpotifyTitle))
-                    {
-                        //Debug.Log(title);
-                        titleFound = true;
-                    }
-                }
-            }
-
-            if (titleFound == false)
-            {
-                titleMismatches++;
-
-                string processedStr1 = StringManipulator.ProcessString(kvp.Value.SongInfo.MALSongInfo.Titles[0]);
-                string processedStr2 = StringManipulator.ProcessString(kvp.Value.SongInfo.SpotifySongInfo.Title);
-                //Debug.Log($"{processedStr1} : {processedStr2}");
-            }
-
-            foreach (string artist in kvp.Value.SongInfo.MALSongInfo.Artists)
-            {
-                if (artist != null && kvp.Value.SongInfo.SpotifySongInfo.Artist != null)  //
-                {
-                    string processedMALArtist = StringManipulator.ProcessString(artist);
-                    string processedSpotifyArtist = StringManipulator.ProcessString(kvp.Value.SongInfo.SpotifySongInfo.Artist);
-
-                    if (WanaKana.IsKanji(processedSpotifyArtist))
-                    {
-                        artistFound = true;
-                    }
-                    else if (StringManipulator.CompareStrings(processedMALArtist, processedSpotifyArtist))
-                    {
-                        artistFound = true;
-                    }
-                    else if (StringManipulator.CompareHiragana(processedMALArtist, processedSpotifyArtist))
-                    {
-                        //Debug.Log(artist);
-                        artistFound = true;
-                    }
-                    else
-                    {
-                        Token[] tokenizedArtist = WanaKana.Tokenize(processedSpotifyArtist);
-                        
-                        foreach(Token token in tokenizedArtist)
-                        {
-                            if (WanaKana.IsKanji(token.Content))
-                            {
-                                artistFound = true;
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
-
-            if (artistFound == false)
-            {
-                artistMismatches++;
-
-                string processedStr1 = StringManipulator.ProcessString(kvp.Value.SongInfo.MALSongInfo.Artists[0]);
-                string processedStr2 = StringManipulator.ProcessString(kvp.Value.SongInfo.SpotifySongInfo.Artist);
-                Debug.Log($"{processedStr1} : {processedStr2}");
-            }
-        }
-
-        float a = (float) titleMismatches/OpeningThemes.Count*100;
-        float b = (float) artistMismatches/OpeningThemes.Count*100;
-
-        Debug.Log($"Title: {titleMismatches}: {a}%"); // 67.65% // 61.41%      //51.97% //31.3% //30.71%    //29.72%    //28.74
-        Debug.Log($"Artist: {artistMismatches}: {b}%"); // 55.22%   // 56.89%      //56.89 //46.26%                     //39.37 //33.07 //32.87 //28.14 //27.36
     }
 }

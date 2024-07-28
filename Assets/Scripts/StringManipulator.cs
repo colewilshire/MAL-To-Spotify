@@ -47,8 +47,8 @@ public class StringManipulator
         int byIndex = cleanedInput.IndexOf(" by ", StringComparison.OrdinalIgnoreCase);
         if (byIndex > -1)
         {
-            string title = cleanedInput.Substring(0, byIndex).Trim();
-            string artist = cleanedInput.Substring(byIndex + 4).Trim();
+            string title = cleanedInput[..byIndex].Trim();
+            string artist = cleanedInput[(byIndex + 4)..].Trim();
 
             // Return SongInfo object with extracted title and artist
             SongInfo songInfo = new()
