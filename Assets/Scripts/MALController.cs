@@ -1,13 +1,13 @@
-using System;
 using System.IO;
 using System.Linq;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using System.Text.RegularExpressions;
 using System.Text.Json;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using WanaKanaNet;
+using WanaKanaNet.Helpers;
 
 public class MALController : Singleton<MALController>
 {
@@ -32,8 +32,6 @@ public class MALController : Singleton<MALController>
     {
         malLoginButton.onClick.AddListener(async () => await Test());
         seekAnimeButton.onClick.AddListener(SeekAnime);
-
-        Debug.Log(StringManipulator.Test());
     }
 
     private async Task Test()
@@ -271,6 +269,7 @@ public class MALController : Singleton<MALController>
         foreach (KeyValuePair<int, Theme> kvp in OpeningThemes)
         {
             bool titleFound = false;
+            bool artistFound = false;
             
             foreach (string title in kvp.Value.SongInfo.MALSongInfo.Titles)
             {
@@ -297,36 +296,59 @@ public class MALController : Singleton<MALController>
 
                 string processedStr1 = StringManipulator.ProcessString(kvp.Value.SongInfo.MALSongInfo.Titles[0]);
                 string processedStr2 = StringManipulator.ProcessString(kvp.Value.SongInfo.SpotifySongInfo.Title);
-                Debug.Log($"{processedStr1} : {processedStr2}");
+                //Debug.Log($"{processedStr1} : {processedStr2}");
             }
 
-            // // Check if index 0 matches
-            // if (kvp.Value.SongInfo.MALSongInfo.Titles[0].Trim('"') == kvp.Value.SongInfo.SpotifySongInfo.Title)
-            // {
-                
-            // }
-            // // Chcek if in
-            // else if (kvp.Value.SongInfo.MALSongInfo.Titles.Count > 1 && kvp.Value.SongInfo.MALSongInfo.Titles[1] == kvp.Value.SongInfo.SpotifySongInfo.Title)
-            // {
-
-            // }
-            // else
-            // {
-            //     Debug.Log($"{kvp.Value.SongInfo.MALSongInfo.Titles[0].Trim('"')} : {kvp.Value.SongInfo.SpotifySongInfo.Title}");
-            //     titleMismatches++;
-            // }
-
-            if (StringManipulator.CompareStrings(kvp.Value.SongInfo.MALSongInfo.Artists[0], kvp.Value.SongInfo.SpotifySongInfo.Artist) == false)
+            foreach (string artist in kvp.Value.SongInfo.MALSongInfo.Artists)
             {
-                //Debug.Log($"{malArtist} : {kvp.Value.SongInfo.SpotifySongInfo.Artist}");
+                if (artist != null && kvp.Value.SongInfo.SpotifySongInfo.Artist != null)  //
+                {
+                    string processedMALArtist = StringManipulator.ProcessString(artist);
+                    string processedSpotifyArtist = StringManipulator.ProcessString(kvp.Value.SongInfo.SpotifySongInfo.Artist);
+
+                    if (WanaKana.IsKanji(processedSpotifyArtist))
+                    {
+                        artistFound = true;
+                    }
+                    else if (StringManipulator.CompareStrings(processedMALArtist, processedSpotifyArtist))
+                    {
+                        artistFound = true;
+                    }
+                    else if (StringManipulator.CompareHiragana(processedMALArtist, processedSpotifyArtist))
+                    {
+                        //Debug.Log(artist);
+                        artistFound = true;
+                    }
+                    else
+                    {
+                        Token[] tokenizedArtist = WanaKana.Tokenize(processedSpotifyArtist);
+                        
+                        foreach(Token token in tokenizedArtist)
+                        {
+                            if (WanaKana.IsKanji(token.Content))
+                            {
+                                artistFound = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (artistFound == false)
+            {
                 artistMismatches++;
+
+                string processedStr1 = StringManipulator.ProcessString(kvp.Value.SongInfo.MALSongInfo.Artists[0]);
+                string processedStr2 = StringManipulator.ProcessString(kvp.Value.SongInfo.SpotifySongInfo.Artist);
+                Debug.Log($"{processedStr1} : {processedStr2}");
             }
         }
 
         float a = (float) titleMismatches/OpeningThemes.Count*100;
         float b = (float) artistMismatches/OpeningThemes.Count*100;
 
-        Debug.Log($"Title: {titleMismatches}: {a}%"); // 67.65% // 61.41%      //51.97% //31.3% //30.71%    //29.72%
-        Debug.Log($"Artist: {artistMismatches}: {b}%"); // 55.22%   // 56.89%      //56.89 //46.26%
+        Debug.Log($"Title: {titleMismatches}: {a}%"); // 67.65% // 61.41%      //51.97% //31.3% //30.71%    //29.72%    //28.74
+        Debug.Log($"Artist: {artistMismatches}: {b}%"); // 55.22%   // 56.89%      //56.89 //46.26%                     //39.37 //33.07 //32.87 //28.14 //27.36
     }
 }

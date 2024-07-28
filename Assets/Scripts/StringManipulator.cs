@@ -5,11 +5,6 @@ using WanaKanaNet;
 
 public class StringManipulator
 {
-    public static bool Test()
-    {
-        return WanaKana.IsJapanese("今日はカフェでコーヒーを飲みます。");
-    }
-
     private static List<string> SplitString(string input)
     {
         List<string> parts = new();
@@ -84,7 +79,9 @@ public class StringManipulator
         }
         //
 
-        return str.Replace(" ", "").ToLower().Trim('"');
+        string pattern = @"[^a-zA-Z0-9\u3040-\u30FF\u4E00-\u9FAF]";
+
+        return Regex.Replace(str, pattern, "").ToLower();
     }
 
     public static bool CompareStrings(string str1, string str2)
@@ -136,8 +133,8 @@ public class StringManipulator
             }
         };
 
-        string processedStr1 = WanaKana.ToKana(str1, wanaKanaOptions);
-        string processedStr2 = WanaKana.ToKana(str2, wanaKanaOptions);
+        string processedStr1 = WanaKana.ToHiragana(str1, wanaKanaOptions);
+        string processedStr2 = WanaKana.ToHiragana(str2, wanaKanaOptions);
 
         return processedStr1 == processedStr2;
     }
