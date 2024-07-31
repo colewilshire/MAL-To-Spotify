@@ -1,6 +1,7 @@
 using System.IO;
-using System.Threading.Tasks;
+using System.Text;
 using System.Text.Json;
+using System.Threading.Tasks;
 using UnityEngine;
 using TMPro;
 using SpotifyAPI.Web;
@@ -104,7 +105,7 @@ public class AuthenticationController : Singleton<AuthenticationController>
         };
         string serializedToken = JsonSerializer.Serialize(tokenResponse, jsonSerializerOptions);
 
-        File.WriteAllText(savedTokenPath, serializedToken);
+        File.WriteAllText(savedTokenPath, serializedToken, Encoding.Unicode);
     }
 
     private TokenResponse LoadSavedToken(string saveName)

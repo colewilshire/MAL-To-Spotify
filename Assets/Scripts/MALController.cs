@@ -2,7 +2,9 @@ using System.IO;
 using System.Linq;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Text;
 using System.Text.Json;
+using System.Text.Encodings.Web;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -13,16 +15,12 @@ public class MALController : Singleton<MALController>
     [SerializeField] private Button malLoginButton;
     [SerializeField] private Button spotifyLoginButton;
     [SerializeField] private Button seekAnimeButton;
-
     private MALClient malClient;
-
     private Dictionary<int, Theme>.Enumerator enumerator;
     private AnimeListResponse fullAnimeList;
     public Dictionary<int, Theme> OpeningThemes;
-
     private int currentAnimeIndex = 0;
     private int iteration = 0;
-
     public string SongListSaveName = "OpeningThemes";
     public string SaveFileExtension = "sav";
 
@@ -38,11 +36,8 @@ public class MALController : Singleton<MALController>
         spotifyLoginButton.interactable = false;
         seekAnimeButton.interactable = false;
 
-        //malClient = await AuthenticationController.Instance.AuthenticateMALClient();
+        malClient = await AuthenticationController.Instance.AuthenticateMALClient();
         OpeningThemes = LoadThemeSongList(SongListSaveName);
-        DebugController.Instance.GetStats(OpeningThemes);
-        //
-        return;
 
         if (OpeningThemes == null)
         {
@@ -206,11 +201,6 @@ public class MALController : Singleton<MALController>
                     }
                 }
             }
-            else
-            {
-                malInputField.text = $"Iteration: {iteration}, {i}. null";
-                break;
-            }
 
             currentAnimeIndex++;
         }
@@ -224,11 +214,12 @@ public class MALController : Singleton<MALController>
 
         JsonSerializerOptions jsonSerializerOptions = new()
         {
-            WriteIndented = true
+            WriteIndented = true,
+            Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
         };
         string serializedList = JsonSerializer.Serialize(themeSongList, jsonSerializerOptions);
 
-        File.WriteAllText(savedListPath, serializedList);
+        File.WriteAllText(savedListPath, serializedList, Encoding.Unicode);
     }
 
     private Dictionary<int, Theme> LoadThemeSongList(string saveName)

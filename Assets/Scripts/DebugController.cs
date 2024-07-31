@@ -1,6 +1,8 @@
 using System.IO;
 using System.Collections.Generic;
+using System.Text;
 using System.Text.Json;
+using System.Text.Encodings.Web;
 using WanaKanaNet;
 using WanaKanaNet.Helpers;
 using UnityEngine;
@@ -79,15 +81,14 @@ public class DebugController : Singleton<DebugController>
     public void ExportSongList(Dictionary<int, Theme> themeSongList, string saveName, string fileExtension)
     {
         string savedListPath = Path.Combine(Application.persistentDataPath, $"{saveName}.{fileExtension}");
-
         JsonSerializerOptions jsonSerializerOptions = new()
         {
-            WriteIndented = true
+            WriteIndented = true,
+            Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
         };
-
         string serializedList = JsonSerializer.Serialize(themeSongList, jsonSerializerOptions);
 
-        File.WriteAllText(savedListPath, serializedList);
+        File.WriteAllText(savedListPath, serializedList, Encoding.Unicode);
         NativeFilePicker.ExportFile(savedListPath);
     }
 

@@ -1,6 +1,4 @@
-using System;
 using System.Collections.Generic;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using SpotifyAPI.Web;
 using TMPro;
@@ -33,9 +31,6 @@ public class SpotifyController : Singleton<SpotifyController>
         PrivateUser currentUser = await spotifyClient.UserProfile.Current();
         spotifyInputField.text = currentUser.Id;
 
-        PlaylistCreateRequest playlistCreateRequest = new(playlistName);
-        FullPlaylist playlist = await spotifyClient.Playlists.Create(currentUser.Id, playlistCreateRequest);
-
         if (MALController.Instance.OpeningThemes != null)
         {
             HashSet<string> uniqueSongUris = new();
@@ -62,6 +57,8 @@ public class SpotifyController : Singleton<SpotifyController>
             }
 
             List<List<string>> pagedSongUris = SplitIntoBatches(uniqueSongUris, 100);
+            PlaylistCreateRequest playlistCreateRequest = new(playlistName);
+            FullPlaylist playlist = await spotifyClient.Playlists.Create(currentUser.Id, playlistCreateRequest);
 
             foreach (List<string> songUriPage in pagedSongUris)
             {

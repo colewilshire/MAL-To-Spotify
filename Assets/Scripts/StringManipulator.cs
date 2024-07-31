@@ -40,15 +40,17 @@ public class StringManipulator
     public static SongInfo ExtractSongInfo(string input)
     {
         // Remove initial pattern "#number:" or "#number" and trim
-        string pattern = @"^#\d+:?\s*";
-        string cleanedInput = Regex.Replace(input, pattern, "").Trim();
+        //string pattern = @"^#\d+:?\s*";
+        string regexPattern = @"^#[\da-zA-Z]+:?\s*";
+        string cleanedInput = Regex.Replace(input, regexPattern, "");
 
         // Split the string at the first occurrence of " by " into title and artist
         int byIndex = cleanedInput.IndexOf(" by ", StringComparison.OrdinalIgnoreCase);
         if (byIndex > -1)
         {
-            string title = cleanedInput[..byIndex].Trim();
-            string artist = cleanedInput[(byIndex + 4)..].Trim();
+            char[] charactersToTrim = { ' ', '\t', '\r', '\n', '\v', '\f', '"' };
+            string title = cleanedInput[..byIndex].Trim(charactersToTrim);
+            string artist = cleanedInput[(byIndex + 4)..].Trim(charactersToTrim);
 
             // Return SongInfo object with extracted title and artist
             SongInfo songInfo = new()
