@@ -1,5 +1,6 @@
 using System.IO;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using System.Text;
 using System.Text.Json;
 using System.Text.Encodings.Web;
@@ -9,9 +10,11 @@ using UnityEngine;
 
 public class DebugController : Singleton<DebugController>
 {
-    private bool VerifyTitle(List<string> malTitles, string spotifyTitle)
+    private async Task<bool> VerifyTitle(MALSongInfo malSongInfo, SpotifySongInfo spotifySongInfo)
     {
         bool titleFound = false;
+        List<string> malTitles = malSongInfo.Titles;
+        string spotifyTitle = spotifySongInfo.Title;
 
         foreach (string title in malTitles)
         {
@@ -26,8 +29,25 @@ public class DebugController : Singleton<DebugController>
                 }
                 else if (StringManipulator.CompareHiragana(processedMALTitle, processedSpotifyTitle))
                 {
-                    //Debug.Log(title);
                     titleFound = true;
+                }
+                else if (spotifySongInfo.LinkedId != null)
+                {
+                    string alternateTitle = await SpotifyController.Instance.GetAlternateTitle(spotifySongInfo.LinkedId);
+
+                    if (alternateTitle != null)
+                    {
+                        string processedAlternateTitle = StringManipulator.ProcessString(alternateTitle);
+
+                        if (StringManipulator.CompareStrings(processedAlternateTitle, processedSpotifyTitle))
+                        {
+                            titleFound = true;
+                        }
+                        else if (StringManipulator.CompareHiragana(processedAlternateTitle, processedSpotifyTitle))
+                        {
+                            titleFound = true;
+                        }
+                    }
                 }
             }
         }
@@ -56,7 +76,6 @@ public class DebugController : Singleton<DebugController>
                 }
                 else if (StringManipulator.CompareHiragana(processedMALArtist, processedSpotifyArtist))
                 {
-                    //Debug.Log(artist);
                     artistFound = true;
                 }
                 else
@@ -92,7 +111,7 @@ public class DebugController : Singleton<DebugController>
         NativeFilePicker.ExportFile(savedListPath);
     }
 
-    public void GetStats(Dictionary<int, Theme> openingThemes)
+    public async void GetStats(Dictionary<int, Theme> openingThemes)
     {
         int titleMismatches = 0;
         int artistMismatches = 0;
@@ -106,7 +125,7 @@ public class DebugController : Singleton<DebugController>
             bool titleFound = false;
             bool artistFound = false;
             
-            titleFound = VerifyTitle(kvp.Value.SongInfo.MALSongInfo.Titles, kvp.Value.SongInfo.SpotifySongInfo.Title);
+            titleFound = await VerifyTitle(kvp.Value.SongInfo.MALSongInfo, kvp.Value.SongInfo.SpotifySongInfo);
 
             if (titleFound == false)
             {
@@ -114,7 +133,6 @@ public class DebugController : Singleton<DebugController>
 
                 string processedStr1 = StringManipulator.ProcessString(kvp.Value.SongInfo.MALSongInfo.Titles[0]);
                 string processedStr2 = StringManipulator.ProcessString(kvp.Value.SongInfo.SpotifySongInfo.Title);
-                //Debug.Log($"{processedStr1} : {processedStr2}");
             }
 
             artistFound = VerifyArtist(kvp.Value.SongInfo.MALSongInfo.Artists, kvp.Value.SongInfo.SpotifySongInfo.Artist);
@@ -125,7 +143,6 @@ public class DebugController : Singleton<DebugController>
 
                 string processedStr1 = StringManipulator.ProcessString(kvp.Value.SongInfo.MALSongInfo.Artists[0]);
                 string processedStr2 = StringManipulator.ProcessString(kvp.Value.SongInfo.SpotifySongInfo.Artist);
-                //Debug.Log($"{processedStr1} : {processedStr2}");
             }
 
             if (titleFound && artistFound)

@@ -43,7 +43,11 @@ public class SpotifyController : Singleton<SpotifyController>
                 {
                     spotifyInputField.text = query;
 
-                    SearchRequest searchRequest = new(SearchRequest.Types.Track, query);
+                    SearchRequest searchRequest = new(SearchRequest.Types.Track, query)
+                    {
+                        Market = "JP",
+                        Limit = 1
+                    };
                     SearchResponse searchResponse = await spotifyClient.Search.Item(searchRequest);
 
                     if (searchResponse.Tracks.Items.Count > 0)
@@ -52,6 +56,11 @@ public class SpotifyController : Singleton<SpotifyController>
 
                         kvp.Value.SongInfo.SpotifySongInfo.Title = searchResponse.Tracks.Items[0].Name;
                         kvp.Value.SongInfo.SpotifySongInfo.Artist = searchResponse.Tracks.Items[0].Artists[0].Name;
+
+                        if (searchResponse.Tracks.Items[0].LinkedFrom != null)
+                        {
+                            kvp.Value.SongInfo.SpotifySongInfo.LinkedId = searchResponse.Tracks.Items[0].LinkedFrom.Id;
+                        }
                     }
                 }
             }
@@ -94,5 +103,11 @@ public class SpotifyController : Singleton<SpotifyController>
         }
 
         return pagedSongUris;
+    }
+
+    public async Task<string> GetAlternateTitle(string linkedId)
+    {
+        FullTrack linkedTrack = await spotifyClient.Tracks.Get(linkedId);
+        return linkedTrack.Name;
     }
 }

@@ -150,6 +150,7 @@ public class SpotifySongInfo
     public string Title { get; set; }
     public string Artist { get; set; }
     public string Query { get; set; }
+    public string LinkedId { get; set; }
 }
 
 public class AnimeListResponse

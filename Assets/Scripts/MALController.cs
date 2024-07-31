@@ -72,7 +72,6 @@ public class MALController : Singleton<MALController>
         spotifyLoginButton.interactable = true;
     }
 
-
     private void SeekAnime()
     {
         bool success = enumerator.MoveNext();
