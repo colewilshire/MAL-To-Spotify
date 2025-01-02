@@ -4259,6 +4259,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   initialMenuState: 1
+  loadingMenu: {fileID: 1103495483}
 --- !u!4 &1175652465
 Transform:
   m_ObjectHideFlags: 0

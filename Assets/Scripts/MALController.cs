@@ -22,7 +22,7 @@ public class MALController : Singleton<MALController>
     private int currentAnimeIndex = 0;
     private int iteration = 0;
     public string SongListSaveName = "OpeningThemes";
-    public string SaveFileExtension = "sav";
+    public string SaveFileExtension = "json";
 
     private void Start()
     {
@@ -32,9 +32,10 @@ public class MALController : Singleton<MALController>
 
     private async Task Test()
     {
-        malLoginButton.interactable = false;
-        spotifyLoginButton.interactable = false;
-        seekAnimeButton.interactable = false;
+        // malLoginButton.interactable = false;
+        // spotifyLoginButton.interactable = false;
+        // seekAnimeButton.interactable = false;
+        MenuController.Instance.SetMenu(MenuState.Loading);
 
         malClient = await AuthenticationController.Instance.AuthenticateMALClient();
         OpeningThemes = LoadThemeSongList(SongListSaveName);
@@ -67,9 +68,10 @@ public class MALController : Singleton<MALController>
         }
 
         SeekAnime();
-        seekAnimeButton.interactable = true;
-        malLoginButton.interactable = true;
-        spotifyLoginButton.interactable = true;
+        MenuController.Instance.SetMenu(MenuState.Main);
+        // seekAnimeButton.interactable = true;
+        // malLoginButton.interactable = true;
+        // spotifyLoginButton.interactable = true;
     }
 
     private void SeekAnime()
@@ -79,76 +81,15 @@ public class MALController : Singleton<MALController>
         if (success)
         {
             KeyValuePair<int, Theme> current = enumerator.Current;
-            malInputField.text = $"{current.Key}. {current.Value.Text}";
+            MenuController.Instance.UpdateProgressBar(0, $"{current.Key}. {current.Value.Text}");
         }
-    }
-
-    private async Task TestGetAnimeListAsync()
-    {
-        AnimeListResponse animeList = await malClient.GetAnimeListAsync("@me");
-
-        Debug.Log($"First anime in list: {animeList.Data[0].Node.Title}");
-        malInputField.text = $"First anime in list: {animeList.Data[0].Node.Title}";
-    }
-
-    private async Task TestGetAnimeDetailsAsync(int animeId)
-    {
-        List<AnimeField> fields = AnimeFieldExtensions.GetAllFields();
-        AnimeDetails animeDetails = await malClient.GetAnimeDetailsAsync(animeId, fields);
-
-        string detailsOutput = $"Anime title: {animeDetails.Title}\nID: {animeDetails.Id}\nGenres: {animeDetails.Genres}\nSynopsis: {animeDetails.Synopsis}\n Score: {animeDetails.Mean}\nNumber of Episodes: {animeDetails.NumEpisodes}\nStatus: {animeDetails.Status}";
-        Debug.Log(detailsOutput);
-        malInputField.text = detailsOutput;
-    }
-
-    private async Task TestGetAnimeRankingAsync()
-    {
-        AnimeRankingResponse animeRanking = await malClient.GetAnimeRankingAsync();
-
-        Debug.Log($"Top ranked anime: {animeRanking.Data[0].Node.Title}");
-        malInputField.text = $"Top ranked anime: {animeRanking.Data[0].Node.Title}";
-    }
-
-    private async Task TestGetSeasonalAnimeAsync(int year, string season)
-    {
-        SeasonalAnimeResponse seasonalAnime = await malClient.GetSeasonalAnimeAsync(year, season);
-
-        Debug.Log($"Seasonal anime: {seasonalAnime.Data[0].Node.Title}");
-        malInputField.text = $"Seasonal anime: {seasonalAnime.Data[0].Node.Title}";
-    }
-
-    private async Task TestGetSuggestedAnimeAsync()
-    {
-        AnimeSuggestionResponse suggestedAnime = await malClient.GetSuggestedAnimeAsync();
-
-        Debug.Log($"Suggested anime: {suggestedAnime.Data[0].Node.Title}");
-        malInputField.text = $"Suggested anime: {suggestedAnime.Data[0].Node.Title}";
-    }
-
-    private async Task TestGetMyUserInfoAsync()
-    {
-        UserInfoResponse myUserInfo = await malClient.GetMyUserInfoAsync(new List<UserInfoField>() {UserInfoField.Id});
-        string userInfoOutput = $"User Info: \n" +
-                                $"ID: {myUserInfo.Id}\n" +
-                                $"Name: {myUserInfo.Name}\n" +
-                                $"Picture: {myUserInfo.Picture}\n" +
-                                $"Gender: {myUserInfo.Gender}\n" +
-                                $"Birthday: {myUserInfo.Birthday}\n" +
-                                $"Location: {myUserInfo.Location}\n" +
-                                $"Joined At: {myUserInfo.JoinedAt}\n" +
-                                $"Anime Statistics: {myUserInfo.AnimeStatistics}\n" +
-                                $"Time Zone: {myUserInfo.TimeZone}\n" +
-                                $"Is Supporter: {myUserInfo.IsSupporter}";
-
-        Debug.Log(userInfoOutput);
-        malInputField.text = userInfoOutput;
     }
 
     public async Task<AnimeListResponse> GetAnimeListAsync(string nextPageUrl = null)
     {
         AnimeListResponse animeList;
 
-        malInputField.text = $"Loading...";
+        MenuController.Instance.UpdateProgressBar(0, $"Loading...");
 
         if (nextPageUrl != null)
         {
@@ -161,7 +102,7 @@ public class MALController : Singleton<MALController>
 
         if (animeList == null)
         {
-            malInputField.text = $"Returning...";
+            MenuController.Instance.UpdateProgressBar(0, $"Returning...");
             return null;
         }
 
@@ -177,10 +118,10 @@ public class MALController : Singleton<MALController>
     public async Task<List<Theme>> GetAnimeListThemeSongsAsync(AnimeListResponse animeList, int startingIndex = 0)
     {
         iteration++;
-        malInputField.text = $"Loading... [{iteration}]";
+        MenuController.Instance.UpdateProgressBar(0, $"Loading... [{iteration}]");
 
         List<Theme> themeSongs = new();
-        List<AnimeField> fields = new() { AnimeField.OpeningThemes };
+        List<AnimeField> fields = new() { AnimeField.OpeningThemes, AnimeField.EndingThemes };
 
         for (int i = startingIndex; i < animeList.Data.Count; ++i)
         {
@@ -189,7 +130,7 @@ public class MALController : Singleton<MALController>
 
             if (animeDetails != null)
             {
-                malInputField.text = animeDetails.Title;
+                MenuController.Instance.UpdateProgressBar(0, animeDetails.Title);
 
                 if (animeDetails.OpeningThemes != null)
                 {

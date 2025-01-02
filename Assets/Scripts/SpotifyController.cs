@@ -23,13 +23,18 @@ public class SpotifyController : Singleton<SpotifyController>
 
     private async Task Test()
     {
-        spotifyLoginButton.interactable = false;
-        malLoginButton.interactable = false;
-
+        // spotifyLoginButton.interactable = false;
+        // malLoginButton.interactable = false;
+        MenuController.Instance.SetMenu(MenuState.Loading);
         spotifyClient = await AuthenticationController.Instance.AuthenticateSpotifyClient();
 
         PrivateUser currentUser = await spotifyClient.UserProfile.Current();
-        spotifyInputField.text = currentUser.Id;
+        Debug.Log(currentUser.Id);
+        MenuController.Instance.UpdateProgressBar(0, currentUser.Id);
+
+        //await Test1();
+        //MenuController.Instance.SetMenu(MenuState.Main);
+        //return;
 
         if (MALController.Instance.OpeningThemes != null)
         {
@@ -41,11 +46,11 @@ public class SpotifyController : Singleton<SpotifyController>
 
                 if (query != null)
                 {
-                    spotifyInputField.text = query;
+                    MenuController.Instance.UpdateProgressBar(0, query);
 
                     SearchRequest searchRequest = new(SearchRequest.Types.Track, query)
                     {
-                        Market = "JP",
+                        //Market = "JP",
                         Limit = 1
                     };
                     SearchResponse searchResponse = await spotifyClient.Search.Item(searchRequest);
@@ -75,11 +80,16 @@ public class SpotifyController : Singleton<SpotifyController>
                 await spotifyClient.Playlists.AddItems(playlist.Id, playlistAddItemsRequest);
             }
 
-            spotifyInputField.text = "Done";
+            MenuController.Instance.UpdateProgressBar(0, "Done");
+        }
+        else
+        {
+            Debug.Log("Failed to load themes");
         }
 
-        spotifyLoginButton.interactable = true;
-        malLoginButton.interactable = true;
+        MenuController.Instance.SetMenu(MenuState.Main);
+        // spotifyLoginButton.interactable = true;
+        // malLoginButton.interactable = true;
     }
 
     private List<List<string>> SplitIntoBatches(HashSet<string> uniqueSongUris, int batchSize)
@@ -109,5 +119,46 @@ public class SpotifyController : Singleton<SpotifyController>
     {
         FullTrack linkedTrack = await spotifyClient.Tracks.Get(linkedId);
         return linkedTrack.Name;
+    }
+
+    private async Task Test1()
+    {
+        List<string> queryList = new()
+        {
+            "Yume Tourou 夢灯籠 RADWIMPS",
+            "Dramatic ja Nakute mo ドラマチックじゃなくても Kana Hanazawa"
+        };
+
+        foreach (string query in queryList)
+        {
+            SearchRequest searchRequest = new(SearchRequest.Types.Track, query)
+            {
+                Market = "US",
+                Limit = 5
+            };
+            SearchResponse searchResponse = await spotifyClient.Search.Item(searchRequest);
+
+            for (int i = 0; i < searchResponse.Tracks.Items.Count; i++)
+            {
+                FullTrack track = searchResponse.Tracks.Items[i];
+
+                if (track.LinkedFrom != null)
+                {
+                    FullTrack alternateTrack = await spotifyClient.Tracks.Get(track.LinkedFrom.Id);
+                    Debug.Log($"{i}: {track.Name}, {track.Artists[0].Name} : {alternateTrack.Name}, {alternateTrack.Artists[0].Name}");
+                }
+                else
+                {
+                    Debug.Log($"{i}: {track.Name}, {track.Artists[0].Name} : null");
+                }
+            }
+
+            // TracksRequest tracksRequest = new(new List<string>());
+            // TracksResponse tracksResponse = await spotifyClient.Tracks.GetSeveral(tracksRequest);
+            // foreach(FullTrack fullTrack in tracksResponse.Tracks)
+            // {
+
+            // }
+        }
     }
 }

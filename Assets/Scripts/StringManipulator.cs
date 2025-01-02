@@ -51,6 +51,7 @@ public class StringManipulator
             char[] charactersToTrim = { ' ', '\t', '\r', '\n', '\v', '\f', '"' };
             string title = cleanedInput[..byIndex].Trim(charactersToTrim);
             string artist = cleanedInput[(byIndex + 4)..].Trim(charactersToTrim);
+            string query = "";
 
             // Return SongInfo object with extracted title and artist
             SongInfo songInfo = new()
@@ -63,7 +64,13 @@ public class StringManipulator
                 SpotifySongInfo = new()
             };
 
-            songInfo.SpotifySongInfo.Query = $"{songInfo.MALSongInfo.Titles[0]} {songInfo.MALSongInfo.Artists[0]}";
+            foreach(string malTitle in songInfo.MALSongInfo.Titles)
+            {
+                query = $"{query} {malTitle}";
+            }
+
+            query = $"{query} {songInfo.MALSongInfo.Artists[0]}";
+            songInfo.SpotifySongInfo.Query = query;
 
             return songInfo;
         }
