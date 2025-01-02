@@ -111,7 +111,7 @@ public class DebugController : Singleton<DebugController>
         NativeFilePicker.ExportFile(savedListPath);
     }
 
-    public async void GetStats(Dictionary<int, Theme> openingThemes)
+    public async Task GetStats(Dictionary<int, Theme> openingThemes)
     {
         int titleMismatches = 0;
         int artistMismatches = 0;
@@ -163,15 +163,33 @@ public class DebugController : Singleton<DebugController>
             }
         }
 
-        ExportSongList(verifiedSongs, "VerifiedSongs", "txt");
-        ExportSongList(rejectedTitles, "RejectedTitles", "txt");
-        ExportSongList(rejectedArtists, "RejectedArtists", "txt");
-        ExportSongList(completeRejections, "CompleteRejections", "txt");
+        // ExportSongList(verifiedSongs, "VerifiedSongs", "txt");
+        // ExportSongList(rejectedTitles, "RejectedTitles", "txt");
+        // ExportSongList(rejectedArtists, "RejectedArtists", "txt");
+        // ExportSongList(completeRejections, "CompleteRejections", "txt");
 
         float a = (float) titleMismatches/openingThemes.Count*100;
         float b = (float) artistMismatches/openingThemes.Count*100;
 
         Debug.Log($"Title: {titleMismatches}: {a}%"); // 67.65% // 61.41%      //51.97% //31.3% //30.71%    //29.72%    //28.74
         Debug.Log($"Artist: {artistMismatches}: {b}%"); // 55.22%   // 56.89%      //56.89 //46.26%                     //39.37 //33.07 //32.87 //28.14 //27.36
+
+        Debug.Log("Titles:");
+        foreach (KeyValuePair<int, Theme> kvp in rejectedTitles)
+        {
+            Debug.Log($"    {kvp.Key}");
+        }
+
+        Debug.Log("Artists:");
+        foreach (KeyValuePair<int, Theme> kvp in rejectedArtists)
+        {
+            Debug.Log($"    {kvp.Key}");
+        }
+
+        Debug.Log("Both:");
+        foreach (KeyValuePair<int, Theme> kvp in completeRejections)
+        {
+            Debug.Log($"    {kvp.Key}");
+        }
     }
 }
