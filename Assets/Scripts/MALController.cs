@@ -32,13 +32,11 @@ public class MALController : Singleton<MALController>
 
     private async Task Test()
     {
-        // malLoginButton.interactable = false;
-        // spotifyLoginButton.interactable = false;
-        // seekAnimeButton.interactable = false;
         MenuController.Instance.SetMenu(MenuState.Loading);
 
         malClient = await AuthenticationController.Instance.AuthenticateMALClient();
         OpeningThemes = LoadThemeSongList(SongListSaveName);
+        malInputField.text = (await malClient.GetMyUserInfoAsync()).Name;
 
         if (OpeningThemes == null)
         {
@@ -67,11 +65,10 @@ public class MALController : Singleton<MALController>
             enumerator = OpeningThemes.GetEnumerator();
         }
 
+        malLoginButton.interactable = false;
+        spotifyLoginButton.interactable = true;
         SeekAnime();
         MenuController.Instance.SetMenu(MenuState.Main);
-        // seekAnimeButton.interactable = true;
-        // malLoginButton.interactable = true;
-        // spotifyLoginButton.interactable = true;
     }
 
     private void SeekAnime()

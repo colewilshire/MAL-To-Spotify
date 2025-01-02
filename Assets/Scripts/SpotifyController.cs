@@ -9,9 +9,6 @@ public class SpotifyController : Singleton<SpotifyController>
 {
     [SerializeField] private TMP_InputField spotifyInputField;
     [SerializeField] private Button spotifyLoginButton;
-    [SerializeField] private Button malLoginButton;
-    [SerializeField] private string clientId;
-    [SerializeField] private string clientSecret;
     [SerializeField] private string playlistName = "Anime Opening Themes";
 
     private SpotifyClient spotifyClient;
@@ -23,14 +20,12 @@ public class SpotifyController : Singleton<SpotifyController>
 
     private async Task Test()
     {
-        // spotifyLoginButton.interactable = false;
-        // malLoginButton.interactable = false;
         MenuController.Instance.SetMenu(MenuState.Loading);
         spotifyClient = await AuthenticationController.Instance.AuthenticateSpotifyClient();
 
         PrivateUser currentUser = await spotifyClient.UserProfile.Current();
-        Debug.Log(currentUser.Id);
         MenuController.Instance.UpdateProgressBar(0, currentUser.Id);
+        spotifyInputField.text = currentUser.Id;
 
         //await Test1();
         //MenuController.Instance.SetMenu(MenuState.Main);
@@ -50,7 +45,7 @@ public class SpotifyController : Singleton<SpotifyController>
 
                     SearchRequest searchRequest = new(SearchRequest.Types.Track, query)
                     {
-                        //Market = "JP",
+                        Market = "JP",
                         Limit = 1
                     };
                     SearchResponse searchResponse = await spotifyClient.Search.Item(searchRequest);
@@ -82,14 +77,8 @@ public class SpotifyController : Singleton<SpotifyController>
 
             MenuController.Instance.UpdateProgressBar(0, "Done");
         }
-        else
-        {
-            Debug.Log("Failed to load themes");
-        }
 
         MenuController.Instance.SetMenu(MenuState.Main);
-        // spotifyLoginButton.interactable = true;
-        // malLoginButton.interactable = true;
     }
 
     private List<List<string>> SplitIntoBatches(HashSet<string> uniqueSongUris, int batchSize)

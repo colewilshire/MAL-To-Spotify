@@ -1,1 +1,0 @@
-E:\Unity Projects\MAL-To-Spotify\Library\Bee\Android\Prj\IL2CPP\Gradle\unityLibrary\build\intermediates\cxx\Debug\384u165m\obj\armeabi-v7a
