@@ -2954,7 +2954,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f5fa242151b90d244b0950ce7744b5b6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  apiKey: 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
+  apiKey: 
   model: gpt-4o
 --- !u!4 &884866328
 Transform:
