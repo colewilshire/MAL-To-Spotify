@@ -18,7 +18,7 @@ public class SpotifyController : Singleton<SpotifyController>
 
     private void Start()
     {
-        spotifyLoginButton.onClick.AddListener(async () => await Test());
+        spotifyLoginButton.onClick.AddListener(async () => await Test3());
     }
 
     private async Task Test()
@@ -170,11 +170,9 @@ public class SpotifyController : Singleton<SpotifyController>
         if (MALController.Instance.OpeningThemes != null)
         {
             HashSet<string> uniqueSongUris = await GetUniqueSongUris();
-            Debug.Log("1111");
             List<List<string>> pagedSongUris = SplitIntoBatches(uniqueSongUris, 100);
             PlaylistCreateRequest playlistCreateRequest = new(playlistName);
             FullPlaylist playlist = await spotifyClient.Playlists.Create(currentUser.Id, playlistCreateRequest);
-            Debug.Log("2222");
 
             foreach (List<string> songUriPage in pagedSongUris)
             {
@@ -190,7 +188,7 @@ public class SpotifyController : Singleton<SpotifyController>
 
     private async Task<HashSet<string>> GetUniqueSongUris()
     {
-        Dictionary<Theme, Task<SearchResponse>> searchResponses = new();
+        Dictionary<Theme, SearchResponse> searchResponses = new();
         HashSet<string> uniqueSongUris = new();
 
         foreach (KeyValuePair<int, Theme> kvp in MALController.Instance.OpeningThemes)
@@ -206,52 +204,28 @@ public class SpotifyController : Singleton<SpotifyController>
                     Market = "JP",
                     Limit = 1
                 };
-                searchResponses.Add(kvp.Value, spotifyClient.Search.Item(searchRequest));
+                searchResponses.Add(kvp.Value, await spotifyClient.Search.Item(searchRequest));
             }
         }
 
-        try
+        foreach (KeyValuePair<Theme, SearchResponse> kvp in searchResponses)
         {
-            await Task.WhenAll(searchResponses.Values);
-        }
-        catch (Exception ex)
-        {
-            Debug.Log(ex);
-        }
-
-        foreach (KeyValuePair<Theme, Task<SearchResponse>> kvp in searchResponses)
-        {
-            Debug.Log("tttt");
-            if (kvp.Value.Result.Tracks.Items.Count > 0)
+            if (kvp.Value.Tracks.Items.Count > 0)
             {
-                Debug.Log("qqqqq");
-                uniqueSongUris.Add(kvp.Value.Result.Tracks.Items[0].Uri);
+                uniqueSongUris.Add(kvp.Value.Tracks.Items[0].Uri);
 
-                kvp.Key.SongInfo.SpotifySongInfo.Title = kvp.Value.Result.Tracks.Items[0].Name;
-                kvp.Key.SongInfo.SpotifySongInfo.Artist = kvp.Value.Result.Tracks.Items[0].Artists[0].Name;
+                kvp.Key.SongInfo.SpotifySongInfo.Title = kvp.Value.Tracks.Items[0].Name;
+                kvp.Key.SongInfo.SpotifySongInfo.Artist = kvp.Value.Tracks.Items[0].Artists[0].Name;
 
-                if (kvp.Value.Result.Tracks.Items[0].LinkedFrom != null)
+                if (kvp.Value.Tracks.Items[0].LinkedFrom != null)
                 {
-                    kvp.Key.SongInfo.SpotifySongInfo.LinkedId = kvp.Value.Result.Tracks.Items[0].LinkedFrom.Id;
+                    kvp.Key.SongInfo.SpotifySongInfo.LinkedId = kvp.Value.Tracks.Items[0].LinkedFrom.Id;
                 }
-                Debug.Log("zzzz");
             }
         }
 
         return uniqueSongUris;
     }
-
-    // private async Task<SearchResponse> SafeSearchRequest(SearchRequest searchRequest)
-    // {
-    //     try
-    //     {
-    //         return await spotifyClient.Search.Item(searchRequest);
-    //     }
-    //     catch
-    //     {
-    //         return null;
-    //     }
-    // }
 
     private List<List<string>> SplitIntoBatches(HashSet<string> uniqueSongUris, int batchSize)
     {
