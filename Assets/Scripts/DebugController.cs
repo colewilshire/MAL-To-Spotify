@@ -110,6 +110,20 @@ public class DebugController : Singleton<DebugController>
         File.WriteAllText(savedListPath, serializedList, Encoding.Unicode);
         NativeFilePicker.ExportFile(savedListPath);
     }
+    
+    public void ExportUpdatedAt(Dictionary<int, string> updatedAt, string saveName, string fileExtension)
+    {
+        string savedListPath = Path.Combine(Application.persistentDataPath, $"{saveName}UpdatedAt.{fileExtension}");
+        JsonSerializerOptions jsonSerializerOptions = new()
+        {
+            WriteIndented = true,
+            Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+        };
+        string serializedList = JsonSerializer.Serialize(updatedAt, jsonSerializerOptions);
+
+        File.WriteAllText(savedListPath, serializedList, Encoding.Unicode);
+        NativeFilePicker.ExportFile(savedListPath);
+    }
 
     public async Task GetStats(Dictionary<int, Theme> openingThemes)
     {
@@ -124,7 +138,7 @@ public class DebugController : Singleton<DebugController>
         {
             bool titleFound = false;
             bool artistFound = false;
-            
+
             titleFound = await VerifyTitle(kvp.Value.SongInfo.MALSongInfo, kvp.Value.SongInfo.SpotifySongInfo);
 
             if (titleFound == false)
@@ -149,11 +163,11 @@ public class DebugController : Singleton<DebugController>
             {
                 verifiedSongs.Add(kvp.Key, kvp.Value);
             }
-            else if(titleFound == false && artistFound == true)
+            else if (titleFound == false && artistFound == true)
             {
                 rejectedTitles.Add(kvp.Key, kvp.Value);
             }
-            else if(titleFound == true && artistFound == false)
+            else if (titleFound == true && artistFound == false)
             {
                 rejectedArtists.Add(kvp.Key, kvp.Value);
             }
@@ -168,8 +182,8 @@ public class DebugController : Singleton<DebugController>
         // ExportSongList(rejectedArtists, "RejectedArtists", "txt");
         // ExportSongList(completeRejections, "CompleteRejections", "txt");
 
-        float a = (float) titleMismatches/openingThemes.Count*100;
-        float b = (float) artistMismatches/openingThemes.Count*100;
+        float a = (float)titleMismatches / openingThemes.Count * 100;
+        float b = (float)artistMismatches / openingThemes.Count * 100;
 
         Debug.Log($"Title: {titleMismatches}: {a}%"); // 67.65% // 61.41%      //51.97% //31.3% //30.71%    //29.72%    //28.74
         Debug.Log($"Artist: {artistMismatches}: {b}%"); // 55.22%   // 56.89%      //56.89 //46.26%                     //39.37 //33.07 //32.87 //28.14 //27.36

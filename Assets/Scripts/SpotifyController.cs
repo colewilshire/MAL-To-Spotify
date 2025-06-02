@@ -14,11 +14,13 @@ public class SpotifyController : Singleton<SpotifyController>
     [SerializeField] private Button spotifyLoginButton;
     [SerializeField] private string playlistName = "Anime Opening Themes";
 
+    public Dictionary<Theme, SearchResponse> SearchResponses = new();
+
     private SpotifyClient spotifyClient;
 
     private void Start()
     {
-        spotifyLoginButton.onClick.AddListener(async () => await Test3());
+        spotifyLoginButton.onClick.AddListener(async () => await Test4());
     }
 
     private async Task Test()
@@ -186,29 +188,61 @@ public class SpotifyController : Singleton<SpotifyController>
         MenuController.Instance.SetMenu(MenuState.Main);
     }
 
+    private async Task Test4()
+    {
+        MenuController.Instance.SetMenu(MenuState.Loading);
+        spotifyClient = await AuthenticationController.Instance.AuthenticateSpotifyClient();
+
+        PrivateUser currentUser = await spotifyClient.UserProfile.Current();
+        MenuController.Instance.UpdateProgressBar(0, currentUser.Id);
+        spotifyInputField.text = currentUser.Id;
+
+        if (MALController.Instance.OpeningThemes != null)
+        {
+            HashSet<string> uniqueSongUris = await GetUniqueSongUris();
+            //MenuController.Instance.SetMenu(MenuState.Playlist);
+            //return;
+            List<List<string>> pagedSongUris = SplitIntoBatches(uniqueSongUris, 100);
+            PlaylistCreateRequest playlistCreateRequest = new(playlistName);
+            FullPlaylist playlist = await spotifyClient.Playlists.Create(currentUser.Id, playlistCreateRequest);
+
+            foreach (List<string> songUriPage in pagedSongUris)
+            {
+                PlaylistAddItemsRequest playlistAddItemsRequest = new(songUriPage);
+                await spotifyClient.Playlists.AddItems(playlist.Id, playlistAddItemsRequest);
+            }
+
+            MenuController.Instance.UpdateProgressBar(0, "Done");
+        }
+
+        MenuController.Instance.SetMenu(MenuState.Main);
+    }
+
     private async Task<HashSet<string>> GetUniqueSongUris()
     {
-        Dictionary<Theme, SearchResponse> searchResponses = new();
+        SearchResponses = new();
         HashSet<string> uniqueSongUris = new();
+        int iteration = 0;
 
         foreach (KeyValuePair<int, Theme> kvp in MALController.Instance.OpeningThemes)
         {
+            iteration++;
             string query = kvp.Value.SongInfo.SpotifySongInfo.Query;
 
             if (query != null)
             {
-                MenuController.Instance.UpdateProgressBar(0, query);
+                MenuController.Instance.UpdateProgressBar(iteration / MALController.Instance.OpeningThemes.Count, query);
 
                 SearchRequest searchRequest = new(SearchRequest.Types.Track, query)
                 {
                     Market = "JP",
                     Limit = 1
                 };
-                searchResponses.Add(kvp.Value, await spotifyClient.Search.Item(searchRequest));
+                SearchResponses.Add(kvp.Value, await spotifyClient.Search.Item(searchRequest));
             }
         }
 
-        foreach (KeyValuePair<Theme, SearchResponse> kvp in searchResponses)
+        foreach (KeyValuePair<Theme, SearchResponse> kvp in SearchResponses)
         {
             if (kvp.Value.Tracks.Items.Count > 0)
             {

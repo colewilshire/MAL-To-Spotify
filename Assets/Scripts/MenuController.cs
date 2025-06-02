@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class MenuController : Singleton<MenuController>
 {
-    [SerializeField] private MenuState initialMenuState = MenuState.Default;
+    [SerializeField] private MenuState initialMenuState;
     [SerializeField] private LoadingMenu loadingMenu;
     public delegate void OnMenuStateChangeHandler(MenuState menuState);
     public event OnMenuStateChangeHandler OnMenuStateChange;

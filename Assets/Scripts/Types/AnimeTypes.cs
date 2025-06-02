@@ -27,14 +27,14 @@ public class AnimeDetails
     public string Source { get; set; }
     public int AverageEpisodeDuration { get; set; }
     public string Rating { get; set; }
-    public List<Picture> Pictures { get; set; }
-    public string Background { get; set; }
-    public List<RelatedAnime> RelatedAnime { get; set; }
-    public List<Recommendation> Recommendations { get; set; }
+    public List<Picture> Pictures { get; set; }  // Invalid for GetAnimeListAsync; requires GetAnimeDetailsAsync
+    public string Background { get; set; }  // Invalid for GetAnimeListAsync; requires GetAnimeDetailsAsync
+    public List<RelatedAnime> RelatedAnime { get; set; }  // Invalid for GetAnimeListAsync; requires GetAnimeDetailsAsync
+    public List<Recommendation> Recommendations { get; set; }  // Invalid for GetAnimeListAsync; requires GetAnimeDetailsAsync
     public List<Studio> Studios { get; set; }
-    public Statistics Statistics { get; set; }
-    public List<Theme> OpeningThemes { get; set; }
-    public List<Theme> EndingThemes { get; set; }
+    public Statistics Statistics { get; set; }  // Invalid for GetAnimeListAsync; requires GetAnimeDetailsAsync
+    public List<Theme> OpeningThemes { get; set; }  // Invalid for GetAnimeListAsync; requires GetAnimeDetailsAsync
+    public List<Theme> EndingThemes { get; set; }  // Invalid for GetAnimeListAsync; requires GetAnimeDetailsAsync
 }
 
 public class MainPicture
@@ -161,7 +161,7 @@ public class AnimeListResponse
 
 public class AnimeListNode
 {
-    public AnimeNode Node { get; set; }
+    public AnimeDetails Node { get; set; }
 }
 
 public class AnimeNode
