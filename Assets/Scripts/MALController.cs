@@ -20,6 +20,7 @@ public class MALController : Singleton<MALController>
     private readonly int requestDelay = 1100;
     public Dictionary<int, Theme> OpeningThemes;
     public string SongListSaveName = "OpeningThemes";
+    public string UpdatedAtSaveName = "UpdatedAt";
     public string SaveFileExtension = "txt";
 
     private void Start()
@@ -32,7 +33,7 @@ public class MALController : Singleton<MALController>
         MenuController.Instance.SetMenu(MenuState.Loading);
 
         malClient = await AuthenticationController.Instance.AuthenticateMALClient();
-        OpeningThemes = LoadThemeSongList(SongListSaveName);
+        OpeningThemes = LoadThemeSongList();
         malInputField.text = (await malClient.GetMyUserInfoAsync()).Name;
 
         while (fullAnimeList == null)
@@ -51,7 +52,7 @@ public class MALController : Singleton<MALController>
                 .GroupBy(theme => theme.Id)
                 .ToDictionary(group => group.Key, group => group.First()));
 
-            SaveThemeSongList(OpeningThemes, SongListSaveName);
+            SaveThemeSongList(OpeningThemes);
         }
 
         malLoginButton.interactable = false;
@@ -120,10 +121,9 @@ public class MALController : Singleton<MALController>
         return themeSongs;
     }
 
-    private void SaveThemeSongList(Dictionary<int, Theme> themeSongList, string saveName)
+    private void SaveThemeSongList(Dictionary<int, Theme> themeSongList)
     {
-        string savedListPath = Path.Combine(Application.persistentDataPath, $"{saveName}.{SaveFileExtension}");
-
+        string savedListPath = Path.Combine(Application.persistentDataPath, $"{SongListSaveName}.{SaveFileExtension}");
         JsonSerializerOptions jsonSerializerOptions = new()
         {
             WriteIndented = true,
@@ -134,18 +134,18 @@ public class MALController : Singleton<MALController>
         File.WriteAllText(savedListPath, serializedList, Encoding.Unicode);
     }
 
-    private Dictionary<int, Theme> LoadThemeSongList(string saveName)
+    private Dictionary<int, Theme> LoadThemeSongList()
     {
-        string serializedList = GetSerializedSongList(saveName);
+        string serializedList = GetSerializedSongList();
         if (serializedList == null) return new();
 
         Dictionary<int, Theme> savedList = JsonSerializer.Deserialize<Dictionary<int, Theme>>(serializedList);
         return savedList;
     }
 
-    private void SaveUpdatedAt(AnimeListResponse animeList, string saveName)
+    private void SaveUpdatedAt(AnimeListResponse animeList)
     {
-        string savedListPath = Path.Combine(Application.persistentDataPath, $"{saveName}UpdatedAt.{SaveFileExtension}");
+        string savedListPath = Path.Combine(Application.persistentDataPath, $"{UpdatedAtSaveName}.{SaveFileExtension}");
         Dictionary<int, string> updatedAt = new();
 
         foreach (AnimeListNode node in animeList.Data)
@@ -163,9 +163,9 @@ public class MALController : Singleton<MALController>
         File.WriteAllText(savedListPath, serializedList, Encoding.Unicode);
     }
 
-    private Dictionary<int, string> LoadUpdatedAt(string saveName)
+    private Dictionary<int, string> LoadUpdatedAt()
     {
-        string savedListPath = Path.Combine(Application.persistentDataPath, $"{saveName}UpdatedAt.{SaveFileExtension}");
+        string savedListPath = Path.Combine(Application.persistentDataPath, $"{UpdatedAtSaveName}.{SaveFileExtension}");
         if (!File.Exists(savedListPath)) return new();
 
         string serializedUpdatedAt = File.ReadAllText(savedListPath);
@@ -176,7 +176,7 @@ public class MALController : Singleton<MALController>
 
     private List<int> CheckForUpdates(AnimeListResponse newAnimeList)
     {
-        Dictionary<int, string> cachedUpdatedAt = LoadUpdatedAt(SongListSaveName);
+        Dictionary<int, string> cachedUpdatedAt = LoadUpdatedAt();
         List<int> updatedAnime = new();
 
         foreach (AnimeListNode node in newAnimeList.Data)
@@ -187,14 +187,14 @@ public class MALController : Singleton<MALController>
             }
         }
 
-        SaveUpdatedAt(newAnimeList, SongListSaveName);
+        SaveUpdatedAt(newAnimeList);
 
         return updatedAnime;
     }
 
-    public string GetSerializedSongList(string saveName)
+    public string GetSerializedSongList()
     {
-        string savedListPath = Path.Combine(Application.persistentDataPath, $"{saveName}.{SaveFileExtension}");
+        string savedListPath = Path.Combine(Application.persistentDataPath, $"{SongListSaveName}.{SaveFileExtension}");
         if (!File.Exists(savedListPath)) return null;
 
         string serializedList = File.ReadAllText(savedListPath);

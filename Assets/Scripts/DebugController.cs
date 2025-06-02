@@ -97,23 +97,23 @@ public class DebugController : Singleton<DebugController>
         return artistFound;
     }
 
-    public void ExportSongList(Dictionary<int, Theme> themeSongList, string saveName, string fileExtension)
+    public void ExportSongList()
     {
-        string savedListPath = Path.Combine(Application.persistentDataPath, $"{saveName}.{fileExtension}");
+        string savedListPath = Path.Combine(Application.persistentDataPath, $"{MALController.Instance.SongListSaveName}.{MALController.Instance.SaveFileExtension}");
         JsonSerializerOptions jsonSerializerOptions = new()
         {
             WriteIndented = true,
             Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
         };
-        string serializedList = JsonSerializer.Serialize(themeSongList, jsonSerializerOptions);
+        string serializedList = JsonSerializer.Serialize(MALController.Instance.OpeningThemes, jsonSerializerOptions);
 
         File.WriteAllText(savedListPath, serializedList, Encoding.Unicode);
         NativeFilePicker.ExportFile(savedListPath);
     }
     
-    public void ExportUpdatedAt(Dictionary<int, string> updatedAt, string saveName, string fileExtension)
+    public void ExportUpdatedAt(Dictionary<int, string> updatedAt)
     {
-        string savedListPath = Path.Combine(Application.persistentDataPath, $"{saveName}UpdatedAt.{fileExtension}");
+        string savedListPath = Path.Combine(Application.persistentDataPath, $"{MALController.Instance.UpdatedAtSaveName}.{MALController.Instance.SaveFileExtension}");
         JsonSerializerOptions jsonSerializerOptions = new()
         {
             WriteIndented = true,

@@ -23,7 +23,7 @@ public class DebugMenu : Menu
         deleteSavedMALTokenButton.onClick.AddListener(() => DeleteSavedToken(AuthenticationController.Instance.MalTokenSaveName));
         deleteSavedSpotifyTokenButton.onClick.AddListener(() => DeleteSavedToken(AuthenticationController.Instance.SpotifyTokenSaveName));
         printSavedSongListButton.onClick.AddListener(PrintSavedSongList);
-        exportSavedSongListButton.onClick.AddListener(() => DebugController.Instance.ExportSongList(MALController.Instance.OpeningThemes, MALController.Instance.SongListSaveName, MALController.Instance.SaveFileExtension));
+        exportSavedSongListButton.onClick.AddListener(() => DebugController.Instance.ExportSongList());
         mainMenuButton.onClick.AddListener(() => MenuController.Instance.SetMenu(MenuState.Main));
     }
 
@@ -40,7 +40,7 @@ public class DebugMenu : Menu
 
     private void PrintSavedSongList()
     {
-        string serializedSongList = MALController.Instance.GetSerializedSongList(MALController.Instance.SongListSaveName);
+        string serializedSongList = MALController.Instance.GetSerializedSongList();
         console.text = serializedSongList;
     }
 }
