@@ -118,22 +118,6 @@ public class MALController : Singleton<MALController>
 
         foreach (AnimeDetails animeDetails in allAnimeDetails)
         {
-            // AnimeDetails animeDetails = await malClient.GetAnimeDetailsAsync(animeId, fields);
-            // await Task.Delay(requestDelay);
-
-            // if (animeDetails != null)
-            // {
-            //     MenuController.Instance.UpdateProgressBar(0, animeDetails.Title);
-
-            //     if (animeDetails.OpeningThemes != null)
-            //     {
-            //         foreach (Theme themeSong in animeDetails.OpeningThemes)
-            //         {
-            //             themeSong.SongInfo = StringManipulator.ExtractSongInfo(themeSong.Text);
-            //             themeSongs.Add(themeSong);
-            //         }
-            //     }
-            // }
             if (animeDetails.OpeningThemes != null)
             {
                 foreach (Theme themeSong in animeDetails.OpeningThemes)
@@ -212,8 +196,6 @@ public class MALController : Singleton<MALController>
                 updatedAnime.Add(node.Node.Id);
             }
         }
-
-        //SaveUpdatedAt(newAnimeList);
 
         return updatedAnime;
     }

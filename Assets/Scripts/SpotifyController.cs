@@ -76,11 +76,6 @@ public class SpotifyController : Singleton<SpotifyController>
 
         foreach (KeyValuePair<Theme, SearchResponse> kvp in SearchResponses)
         {
-            // foreach (var a in kvp.Value.Tracks.Items)
-            // {
-            //     uniqueSongUris.Add(a.Uri);
-            // }
-
             for (int i = 0; i < kvp.Value.Tracks.Items.Count; i++)
             {
                 uniqueSongUris.Add(kvp.Value.Tracks.Items[i].Uri);
@@ -91,9 +86,6 @@ public class SpotifyController : Singleton<SpotifyController>
                     Artist = kvp.Value.Tracks.Items[i].Artists[0].Name
                 });
 
-                // kvp.Key.SongInfo.SpotifySongInfo[i].Title = kvp.Value.Tracks.Items[i].Name;
-                // kvp.Key.SongInfo.SpotifySongInfo[i].Artist = kvp.Value.Tracks.Items[i].Artists[0].Name;
-
                 if (kvp.Value.Tracks.Items[i].LinkedFrom != null)
                 {
                     kvp.Key.SongInfo.SpotifySongInfo[i].LinkedId = kvp.Value.Tracks.Items[i].LinkedFrom.Id;
@@ -101,19 +93,6 @@ public class SpotifyController : Singleton<SpotifyController>
 
                 Debug.Log($"\"{kvp.Key.SongInfo.SpotifySongInfo[i].Title}\", {kvp.Key.SongInfo.SpotifySongInfo[i].Artist} | \"{kvp.Key.SongInfo.Query}\"");
             }
-
-            // if (kvp.Value.Tracks.Items.Count > 0)
-            // {
-            //     uniqueSongUris.Add(kvp.Value.Tracks.Items[0].Uri);
-
-            //     kvp.Key.SongInfo.SpotifySongInfo.Title = kvp.Value.Tracks.Items[0].Name;
-            //     kvp.Key.SongInfo.SpotifySongInfo.Artist = kvp.Value.Tracks.Items[0].Artists[0].Name;
-
-            //     if (kvp.Value.Tracks.Items[0].LinkedFrom != null)
-            //     {
-            //         kvp.Key.SongInfo.SpotifySongInfo.LinkedId = kvp.Value.Tracks.Items[0].LinkedFrom.Id;
-            //     }
-            // }
         }
 
         return uniqueSongUris;
