@@ -136,7 +136,8 @@ public class Theme
 public class SongInfo
 {
     public MALSongInfo MALSongInfo { get; set; }
-    public SpotifySongInfo SpotifySongInfo { get; set; }
+    public List<SpotifySongInfo> SpotifySongInfo { get; set; }
+    public string Query { get; set; }
 }
 
 public class MALSongInfo
@@ -149,7 +150,6 @@ public class SpotifySongInfo
 {
     public string Title { get; set; }
     public string Artist { get; set; }
-    public string Query { get; set; }
     public string LinkedId { get; set; }
 }
 

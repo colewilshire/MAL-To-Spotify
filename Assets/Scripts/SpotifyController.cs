@@ -4,9 +4,6 @@ using SpotifyAPI.Web;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using Newtonsoft.Json;
-using System.Linq;
-using System;
 
 public class SpotifyController : Singleton<SpotifyController>
 {
@@ -21,171 +18,6 @@ public class SpotifyController : Singleton<SpotifyController>
     private void Start()
     {
         spotifyLoginButton.onClick.AddListener(async () => await Test4());
-    }
-
-    private async Task Test()
-    {
-        MenuController.Instance.SetMenu(MenuState.Loading);
-        spotifyClient = await AuthenticationController.Instance.AuthenticateSpotifyClient();
-
-        PrivateUser currentUser = await spotifyClient.UserProfile.Current();
-        MenuController.Instance.UpdateProgressBar(0, currentUser.Id);
-        spotifyInputField.text = currentUser.Id;
-
-        if (MALController.Instance.OpeningThemes != null)
-        {
-            HashSet<string> uniqueSongUris = new();
-
-            foreach (KeyValuePair<int, Theme> kvp in MALController.Instance.OpeningThemes)
-            {
-                string query = kvp.Value.SongInfo.SpotifySongInfo.Query;
-
-                if (query != null)
-                {
-                    MenuController.Instance.UpdateProgressBar(0, query);
-
-                    SearchRequest searchRequest = new(SearchRequest.Types.Track, query)
-                    {
-                        Market = "JP",
-                        Limit = 1
-                    };
-                    SearchResponse searchResponse = await spotifyClient.Search.Item(searchRequest);
-
-                    if (searchResponse.Tracks.Items.Count > 0)
-                    {
-                        uniqueSongUris.Add(searchResponse.Tracks.Items[0].Uri);
-
-                        kvp.Value.SongInfo.SpotifySongInfo.Title = searchResponse.Tracks.Items[0].Name;
-                        kvp.Value.SongInfo.SpotifySongInfo.Artist = searchResponse.Tracks.Items[0].Artists[0].Name;
-
-                        if (searchResponse.Tracks.Items[0].LinkedFrom != null)
-                        {
-                            kvp.Value.SongInfo.SpotifySongInfo.LinkedId = searchResponse.Tracks.Items[0].LinkedFrom.Id;
-                        }
-                    }
-                }
-            }
-
-            List<List<string>> pagedSongUris = SplitIntoBatches(uniqueSongUris, 100);
-            PlaylistCreateRequest playlistCreateRequest = new(playlistName);
-            FullPlaylist playlist = await spotifyClient.Playlists.Create(currentUser.Id, playlistCreateRequest);
-
-            foreach (List<string> songUriPage in pagedSongUris)
-            {
-                PlaylistAddItemsRequest playlistAddItemsRequest = new(songUriPage);
-                await spotifyClient.Playlists.AddItems(playlist.Id, playlistAddItemsRequest);
-            }
-
-            MenuController.Instance.UpdateProgressBar(0, "Done");
-        }
-
-        MenuController.Instance.SetMenu(MenuState.Main);
-    }
-
-    private async Task Test2()
-    {
-        MenuController.Instance.SetMenu(MenuState.Loading);
-        spotifyClient = await AuthenticationController.Instance.AuthenticateSpotifyClient();
-
-        PrivateUser currentUser = await spotifyClient.UserProfile.Current();
-        MenuController.Instance.UpdateProgressBar(0, currentUser.Id);
-        spotifyInputField.text = currentUser.Id;
-
-        //await Test1();
-        //MenuController.Instance.SetMenu(MenuState.Main);
-        //return;
-
-        if (MALController.Instance.OpeningThemes != null)
-        {
-            HashSet<string> uniqueSongUris = new();
-
-            foreach (KeyValuePair<int, Theme> kvp in MALController.Instance.OpeningThemes)
-            {
-                string query = kvp.Value.SongInfo.SpotifySongInfo.Query;
-
-                if (query != null)
-                {
-                    MenuController.Instance.UpdateProgressBar(0, query);
-
-                    SearchRequest searchRequest = new(SearchRequest.Types.Track, query)
-                    {
-                        Market = "JP",
-                        Limit = 1
-                    };
-                    SearchResponse searchResponse = await spotifyClient.Search.Item(searchRequest);
-
-                    if (searchResponse.Tracks.Items.Count > 0)
-                    {
-                        uniqueSongUris.Add(searchResponse.Tracks.Items[0].Uri);
-
-                        kvp.Value.SongInfo.SpotifySongInfo.Title = searchResponse.Tracks.Items[0].Name;
-                        kvp.Value.SongInfo.SpotifySongInfo.Artist = searchResponse.Tracks.Items[0].Artists[0].Name;
-
-                        if (searchResponse.Tracks.Items[0].LinkedFrom != null)
-                        {
-                            kvp.Value.SongInfo.SpotifySongInfo.LinkedId = searchResponse.Tracks.Items[0].LinkedFrom.Id;
-                        }
-                    }
-                }
-            }
-
-            ////
-            Dictionary<int, KeyValuePair<List<string>, List<string>>> q = new();
-            Dictionary<int, KeyValuePair<string, List<string>>> r = new();
-            foreach (KeyValuePair<int, Theme> kvp in MALController.Instance.OpeningThemes)
-            {
-                q.Add(kvp.Key, new(kvp.Value.SongInfo.MALSongInfo.Titles, kvp.Value.SongInfo.MALSongInfo.Artists));
-                r.Add(kvp.Key, new(kvp.Value.SongInfo.SpotifySongInfo.Title, kvp.Value.SongInfo.MALSongInfo.Artists));
-            }
-            string x = JsonConvert.SerializeObject(q);
-            string y = JsonConvert.SerializeObject(r);
-            Debug.Log(x);
-            Debug.Log(y);
-            return;
-            ////
-
-            List<List<string>> pagedSongUris = SplitIntoBatches(uniqueSongUris, 100);
-            PlaylistCreateRequest playlistCreateRequest = new(playlistName);
-            FullPlaylist playlist = await spotifyClient.Playlists.Create(currentUser.Id, playlistCreateRequest);
-
-            foreach (List<string> songUriPage in pagedSongUris)
-            {
-                PlaylistAddItemsRequest playlistAddItemsRequest = new(songUriPage);
-                await spotifyClient.Playlists.AddItems(playlist.Id, playlistAddItemsRequest);
-            }
-
-            MenuController.Instance.UpdateProgressBar(0, "Done");
-        }
-
-        MenuController.Instance.SetMenu(MenuState.Main);
-    }
-
-    private async Task Test3()
-    {
-        MenuController.Instance.SetMenu(MenuState.Loading);
-        spotifyClient = await AuthenticationController.Instance.AuthenticateSpotifyClient();
-
-        PrivateUser currentUser = await spotifyClient.UserProfile.Current();
-        MenuController.Instance.UpdateProgressBar(0, currentUser.Id);
-        spotifyInputField.text = currentUser.Id;
-
-        if (MALController.Instance.OpeningThemes != null)
-        {
-            HashSet<string> uniqueSongUris = await GetUniqueSongUris();
-            List<List<string>> pagedSongUris = SplitIntoBatches(uniqueSongUris, 100);
-            PlaylistCreateRequest playlistCreateRequest = new(playlistName);
-            FullPlaylist playlist = await spotifyClient.Playlists.Create(currentUser.Id, playlistCreateRequest);
-
-            foreach (List<string> songUriPage in pagedSongUris)
-            {
-                PlaylistAddItemsRequest playlistAddItemsRequest = new(songUriPage);
-                await spotifyClient.Playlists.AddItems(playlist.Id, playlistAddItemsRequest);
-            }
-
-            MenuController.Instance.UpdateProgressBar(0, "Done");
-        }
-
-        MenuController.Instance.SetMenu(MenuState.Main);
     }
 
     private async Task Test4()
@@ -227,11 +59,11 @@ public class SpotifyController : Singleton<SpotifyController>
         foreach (KeyValuePair<int, Theme> kvp in MALController.Instance.OpeningThemes)
         {
             iteration++;
-            string query = kvp.Value.SongInfo.SpotifySongInfo.Query;
+            string query = kvp.Value.SongInfo.Query;
 
             if (query != null)
             {
-                MenuController.Instance.UpdateProgressBar(iteration / MALController.Instance.OpeningThemes.Count, query);
+                MenuController.Instance.UpdateProgressBar((float)iteration / MALController.Instance.OpeningThemes.Count, query);
 
                 SearchRequest searchRequest = new(SearchRequest.Types.Track, query)
                 {
@@ -244,18 +76,44 @@ public class SpotifyController : Singleton<SpotifyController>
 
         foreach (KeyValuePair<Theme, SearchResponse> kvp in SearchResponses)
         {
-            if (kvp.Value.Tracks.Items.Count > 0)
+            // foreach (var a in kvp.Value.Tracks.Items)
+            // {
+            //     uniqueSongUris.Add(a.Uri);
+            // }
+
+            for (int i = 0; i < kvp.Value.Tracks.Items.Count; i++)
             {
-                uniqueSongUris.Add(kvp.Value.Tracks.Items[0].Uri);
+                uniqueSongUris.Add(kvp.Value.Tracks.Items[i].Uri);
 
-                kvp.Key.SongInfo.SpotifySongInfo.Title = kvp.Value.Tracks.Items[0].Name;
-                kvp.Key.SongInfo.SpotifySongInfo.Artist = kvp.Value.Tracks.Items[0].Artists[0].Name;
-
-                if (kvp.Value.Tracks.Items[0].LinkedFrom != null)
+                kvp.Key.SongInfo.SpotifySongInfo.Add(new()
                 {
-                    kvp.Key.SongInfo.SpotifySongInfo.LinkedId = kvp.Value.Tracks.Items[0].LinkedFrom.Id;
+                    Title = kvp.Value.Tracks.Items[i].Name,
+                    Artist = kvp.Value.Tracks.Items[i].Artists[0].Name
+                });
+
+                // kvp.Key.SongInfo.SpotifySongInfo[i].Title = kvp.Value.Tracks.Items[i].Name;
+                // kvp.Key.SongInfo.SpotifySongInfo[i].Artist = kvp.Value.Tracks.Items[i].Artists[0].Name;
+
+                if (kvp.Value.Tracks.Items[i].LinkedFrom != null)
+                {
+                    kvp.Key.SongInfo.SpotifySongInfo[i].LinkedId = kvp.Value.Tracks.Items[i].LinkedFrom.Id;
                 }
+
+                Debug.Log($"\"{kvp.Key.SongInfo.SpotifySongInfo[i].Title}\", {kvp.Key.SongInfo.SpotifySongInfo[i].Artist} | \"{kvp.Key.SongInfo.Query}\"");
             }
+
+            // if (kvp.Value.Tracks.Items.Count > 0)
+            // {
+            //     uniqueSongUris.Add(kvp.Value.Tracks.Items[0].Uri);
+
+            //     kvp.Key.SongInfo.SpotifySongInfo.Title = kvp.Value.Tracks.Items[0].Name;
+            //     kvp.Key.SongInfo.SpotifySongInfo.Artist = kvp.Value.Tracks.Items[0].Artists[0].Name;
+
+            //     if (kvp.Value.Tracks.Items[0].LinkedFrom != null)
+            //     {
+            //         kvp.Key.SongInfo.SpotifySongInfo.LinkedId = kvp.Value.Tracks.Items[0].LinkedFrom.Id;
+            //     }
+            // }
         }
 
         return uniqueSongUris;
@@ -288,46 +146,5 @@ public class SpotifyController : Singleton<SpotifyController>
     {
         FullTrack linkedTrack = await spotifyClient.Tracks.Get(linkedId);
         return linkedTrack.Name;
-    }
-
-    private async Task Test1()
-    {
-        List<string> queryList = new()
-        {
-            "Yume Tourou 夢灯籠 RADWIMPS",
-            "Dramatic ja Nakute mo ドラマチックじゃなくても Kana Hanazawa"
-        };
-
-        foreach (string query in queryList)
-        {
-            SearchRequest searchRequest = new(SearchRequest.Types.Track, query)
-            {
-                Market = "US",
-                Limit = 5
-            };
-            SearchResponse searchResponse = await spotifyClient.Search.Item(searchRequest);
-
-            for (int i = 0; i < searchResponse.Tracks.Items.Count; i++)
-            {
-                FullTrack track = searchResponse.Tracks.Items[i];
-
-                if (track.LinkedFrom != null)
-                {
-                    FullTrack alternateTrack = await spotifyClient.Tracks.Get(track.LinkedFrom.Id);
-                    Debug.Log($"{i}: {track.Name}, {track.Artists[0].Name} : {alternateTrack.Name}, {alternateTrack.Artists[0].Name}");
-                }
-                else
-                {
-                    Debug.Log($"{i}: {track.Name}, {track.Artists[0].Name} : null");
-                }
-            }
-
-            // TracksRequest tracksRequest = new(new List<string>());
-            // TracksResponse tracksResponse = await spotifyClient.Tracks.GetSeveral(tracksRequest);
-            // foreach(FullTrack fullTrack in tracksResponse.Tracks)
-            // {
-
-            // }
-        }
     }
 }

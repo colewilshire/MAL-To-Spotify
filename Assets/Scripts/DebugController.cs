@@ -139,24 +139,24 @@ public class DebugController : Singleton<DebugController>
             bool titleFound = false;
             bool artistFound = false;
 
-            titleFound = await VerifyTitle(kvp.Value.SongInfo.MALSongInfo, kvp.Value.SongInfo.SpotifySongInfo);
+            titleFound = await VerifyTitle(kvp.Value.SongInfo.MALSongInfo, kvp.Value.SongInfo.SpotifySongInfo[0]);
 
             if (titleFound == false)
             {
                 titleMismatches++;
 
                 string processedStr1 = StringManipulator.ProcessString(kvp.Value.SongInfo.MALSongInfo.Titles[0]);
-                string processedStr2 = StringManipulator.ProcessString(kvp.Value.SongInfo.SpotifySongInfo.Title);
+                string processedStr2 = StringManipulator.ProcessString(kvp.Value.SongInfo.SpotifySongInfo[0].Title);
             }
 
-            artistFound = VerifyArtist(kvp.Value.SongInfo.MALSongInfo.Artists, kvp.Value.SongInfo.SpotifySongInfo.Artist);
+            artistFound = VerifyArtist(kvp.Value.SongInfo.MALSongInfo.Artists, kvp.Value.SongInfo.SpotifySongInfo[0].Artist);
 
             if (artistFound == false)
             {
                 artistMismatches++;
 
                 string processedStr1 = StringManipulator.ProcessString(kvp.Value.SongInfo.MALSongInfo.Artists[0]);
-                string processedStr2 = StringManipulator.ProcessString(kvp.Value.SongInfo.SpotifySongInfo.Artist);
+                string processedStr2 = StringManipulator.ProcessString(kvp.Value.SongInfo.SpotifySongInfo[0].Artist);
             }
 
             if (titleFound && artistFound)

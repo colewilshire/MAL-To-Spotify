@@ -17,7 +17,7 @@ public class MALController : Singleton<MALController>
     [SerializeField] private Button spotifyLoginButton;
     private MALClient malClient;
     private AnimeListResponse fullAnimeList;
-    private readonly int requestDelay = 1100;
+    private readonly int requestDelay = 10000;
     public Dictionary<int, Theme> OpeningThemes;
     public string SongListSaveName = "OpeningThemes";
     public string UpdatedAtSaveName = "UpdatedAt";
@@ -36,12 +36,9 @@ public class MALController : Singleton<MALController>
         OpeningThemes = LoadThemeSongList();
         malInputField.text = (await malClient.GetMyUserInfoAsync()).Name;
 
-        while (fullAnimeList == null)
-        {
-            fullAnimeList = await GetAnimeListAsync();
-        }
-
+        fullAnimeList = await GetAnimeListAsync();
         List<int> updatedAnime = CheckForUpdates(fullAnimeList);
+
         if (updatedAnime.Count > 0)
         {
             List<Theme> allThemes = new();
@@ -53,6 +50,7 @@ public class MALController : Singleton<MALController>
                 .ToDictionary(group => group.Key, group => group.First()));
 
             SaveThemeSongList(OpeningThemes);
+            SaveUpdatedAt(fullAnimeList);
         }
 
         malLoginButton.interactable = false;
@@ -97,23 +95,51 @@ public class MALController : Singleton<MALController>
 
         List<Theme> themeSongs = new();
         List<AnimeField> fields = new() { AnimeField.OpeningThemes, AnimeField.EndingThemes };
+        List<AnimeDetails> allAnimeDetails = new();
 
-        foreach (int animeId in animeIds)
+        for (int i = 0; i < animeIds.Count; i++)
         {
-            AnimeDetails animeDetails = await malClient.GetAnimeDetailsAsync(animeId, fields);
-            await Task.Delay(requestDelay);
+            AnimeDetails animeDetails = null;
 
-            if (animeDetails != null)
+            while (animeDetails == null)
             {
-                MenuController.Instance.UpdateProgressBar(0, animeDetails.Title);
-
-                if (animeDetails.OpeningThemes != null)
+                try
                 {
-                    foreach (Theme themeSong in animeDetails.OpeningThemes)
-                    {
-                        themeSong.SongInfo = StringManipulator.ExtractSongInfo(themeSong.Text);
-                        themeSongs.Add(themeSong);
-                    }
+                    animeDetails = await malClient.GetAnimeDetailsAsync(animeIds[i], fields);
+                    allAnimeDetails.Add(animeDetails);
+                    MenuController.Instance.UpdateProgressBar(((float)i + 1) / animeIds.Count, animeDetails.Title);
+                }
+                catch
+                {
+                    await Task.Delay(requestDelay);
+                }
+            }
+        }
+
+        foreach (AnimeDetails animeDetails in allAnimeDetails)
+        {
+            // AnimeDetails animeDetails = await malClient.GetAnimeDetailsAsync(animeId, fields);
+            // await Task.Delay(requestDelay);
+
+            // if (animeDetails != null)
+            // {
+            //     MenuController.Instance.UpdateProgressBar(0, animeDetails.Title);
+
+            //     if (animeDetails.OpeningThemes != null)
+            //     {
+            //         foreach (Theme themeSong in animeDetails.OpeningThemes)
+            //         {
+            //             themeSong.SongInfo = StringManipulator.ExtractSongInfo(themeSong.Text);
+            //             themeSongs.Add(themeSong);
+            //         }
+            //     }
+            // }
+            if (animeDetails.OpeningThemes != null)
+            {
+                foreach (Theme themeSong in animeDetails.OpeningThemes)
+                {
+                    themeSong.SongInfo = StringManipulator.ExtractSongInfo(themeSong.Text);
+                    themeSongs.Add(themeSong);
                 }
             }
         }
@@ -181,13 +207,13 @@ public class MALController : Singleton<MALController>
 
         foreach (AnimeListNode node in newAnimeList.Data)
         {
-           if (!cachedUpdatedAt.TryGetValue(node.Node.Id, out string cachedTime) || cachedTime != node.Node.UpdatedAt)
+            if (!cachedUpdatedAt.TryGetValue(node.Node.Id, out string cachedTime) || cachedTime != node.Node.UpdatedAt)
             {
                 updatedAnime.Add(node.Node.Id);
             }
         }
 
-        SaveUpdatedAt(newAnimeList);
+        //SaveUpdatedAt(newAnimeList);
 
         return updatedAnime;
     }

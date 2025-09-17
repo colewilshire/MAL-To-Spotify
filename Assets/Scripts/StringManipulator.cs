@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using UnityEngine;
 using WanaKanaNet;
 
 public class StringManipulator
@@ -37,7 +38,7 @@ public class StringManipulator
         return parts;
     }
 
-    public static SongInfo ExtractSongInfo(string input)
+    public static SongInfo ExtractSongInfo(string input, string countryCode = "JP")
     {
         // Remove initial pattern "#number:" or "#number" and trim
         //string pattern = @"^#\d+:?\s*";
@@ -51,7 +52,7 @@ public class StringManipulator
             char[] charactersToTrim = { ' ', '\t', '\r', '\n', '\v', '\f', '"' };
             string title = cleanedInput[..byIndex].Trim(charactersToTrim);
             string artist = cleanedInput[(byIndex + 4)..].Trim(charactersToTrim);
-            string query = "";
+            string query;// = "";
 
             // Return SongInfo object with extracted title and artist
             SongInfo songInfo = new()
@@ -64,13 +65,24 @@ public class StringManipulator
                 SpotifySongInfo = new()
             };
 
-            foreach(string malTitle in songInfo.MALSongInfo.Titles)
+            // foreach(string malTitle in songInfo.MALSongInfo.Titles)
+            // {
+            //     query = $"{query} {malTitle}";
+            // }
+
+            if ((countryCode == "JP") && (songInfo.MALSongInfo.Titles.Count > 1))
             {
-                query = $"{query} {malTitle}";
+                query = $"{songInfo.MALSongInfo.Titles[1]}";
+            }
+            else
+            {
+                query = $"{songInfo.MALSongInfo.Titles[0]}";
             }
 
             query = $"{query} {songInfo.MALSongInfo.Artists[0]}";
-            songInfo.SpotifySongInfo.Query = query;
+            Debug.Log("a");
+            songInfo.Query = query;
+            Debug.Log("b");
 
             return songInfo;
         }
