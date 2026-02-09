@@ -125,85 +125,85 @@ public class DebugController : Singleton<DebugController>
         NativeFilePicker.ExportFile(savedListPath);
     }
 
-    public async Task GetStats(Dictionary<int, Theme> openingThemes)
-    {
-        int titleMismatches = 0;
-        int artistMismatches = 0;
-        Dictionary<int, Theme> verifiedSongs = new();
-        Dictionary<int, Theme> rejectedTitles = new();
-        Dictionary<int, Theme> rejectedArtists = new();
-        Dictionary<int, Theme> completeRejections = new();
+//     public async Task GetStats(Dictionary<int, Theme> openingThemes)
+//     {
+//         int titleMismatches = 0;
+//         int artistMismatches = 0;
+//         Dictionary<int, Theme> verifiedSongs = new();
+//         Dictionary<int, Theme> rejectedTitles = new();
+//         Dictionary<int, Theme> rejectedArtists = new();
+//         Dictionary<int, Theme> completeRejections = new();
 
-        foreach (KeyValuePair<int, Theme> kvp in openingThemes)
-        {
-            bool titleFound = false;
-            bool artistFound = false;
+//         foreach (KeyValuePair<int, Theme> kvp in openingThemes)
+//         {
+//             bool titleFound = false;
+//             bool artistFound = false;
 
-            titleFound = await VerifyTitle(kvp.Value.SongInfo.MALSongInfo, kvp.Value.SongInfo.SpotifySongInfo[0]);
+//             titleFound = await VerifyTitle(kvp.Value.SongInfo.MALSongInfo, kvp.Value.SongInfo.SpotifySongInfo[0]);
 
-            if (titleFound == false)
-            {
-                titleMismatches++;
+//             if (titleFound == false)
+//             {
+//                 titleMismatches++;
 
-                string processedStr1 = StringManipulator.ProcessString(kvp.Value.SongInfo.MALSongInfo.Titles[0]);
-                string processedStr2 = StringManipulator.ProcessString(kvp.Value.SongInfo.SpotifySongInfo[0].Title);
-            }
+//                 string processedStr1 = StringManipulator.ProcessString(kvp.Value.SongInfo.MALSongInfo.Titles[0]);
+//                 string processedStr2 = StringManipulator.ProcessString(kvp.Value.SongInfo.SpotifySongInfo[0].Title);
+//             }
 
-            artistFound = VerifyArtist(kvp.Value.SongInfo.MALSongInfo.Artists, kvp.Value.SongInfo.SpotifySongInfo[0].Artist);
+//             artistFound = VerifyArtist(kvp.Value.SongInfo.MALSongInfo.Artists, kvp.Value.SongInfo.SpotifySongInfo[0].Artist);
 
-            if (artistFound == false)
-            {
-                artistMismatches++;
+//             if (artistFound == false)
+//             {
+//                 artistMismatches++;
 
-                string processedStr1 = StringManipulator.ProcessString(kvp.Value.SongInfo.MALSongInfo.Artists[0]);
-                string processedStr2 = StringManipulator.ProcessString(kvp.Value.SongInfo.SpotifySongInfo[0].Artist);
-            }
+//                 string processedStr1 = StringManipulator.ProcessString(kvp.Value.SongInfo.MALSongInfo.Artists[0]);
+//                 string processedStr2 = StringManipulator.ProcessString(kvp.Value.SongInfo.SpotifySongInfo[0].Artist);
+//             }
 
-            if (titleFound && artistFound)
-            {
-                verifiedSongs.Add(kvp.Key, kvp.Value);
-            }
-            else if (titleFound == false && artistFound == true)
-            {
-                rejectedTitles.Add(kvp.Key, kvp.Value);
-            }
-            else if (titleFound == true && artistFound == false)
-            {
-                rejectedArtists.Add(kvp.Key, kvp.Value);
-            }
-            else
-            {
-                completeRejections.Add(kvp.Key, kvp.Value);
-            }
-        }
+//             if (titleFound && artistFound)
+//             {
+//                 verifiedSongs.Add(kvp.Key, kvp.Value);
+//             }
+//             else if (titleFound == false && artistFound == true)
+//             {
+//                 rejectedTitles.Add(kvp.Key, kvp.Value);
+//             }
+//             else if (titleFound == true && artistFound == false)
+//             {
+//                 rejectedArtists.Add(kvp.Key, kvp.Value);
+//             }
+//             else
+//             {
+//                 completeRejections.Add(kvp.Key, kvp.Value);
+//             }
+//         }
 
-        // ExportSongList(verifiedSongs, "VerifiedSongs", "txt");
-        // ExportSongList(rejectedTitles, "RejectedTitles", "txt");
-        // ExportSongList(rejectedArtists, "RejectedArtists", "txt");
-        // ExportSongList(completeRejections, "CompleteRejections", "txt");
+//         // ExportSongList(verifiedSongs, "VerifiedSongs", "txt");
+//         // ExportSongList(rejectedTitles, "RejectedTitles", "txt");
+//         // ExportSongList(rejectedArtists, "RejectedArtists", "txt");
+//         // ExportSongList(completeRejections, "CompleteRejections", "txt");
 
-        float a = (float)titleMismatches / openingThemes.Count * 100;
-        float b = (float)artistMismatches / openingThemes.Count * 100;
+//         float a = (float)titleMismatches / openingThemes.Count * 100;
+//         float b = (float)artistMismatches / openingThemes.Count * 100;
 
-        Debug.Log($"Title: {titleMismatches}: {a}%"); // 67.65% // 61.41%      //51.97% //31.3% //30.71%    //29.72%    //28.74
-        Debug.Log($"Artist: {artistMismatches}: {b}%"); // 55.22%   // 56.89%      //56.89 //46.26%                     //39.37 //33.07 //32.87 //28.14 //27.36
+//         Debug.Log($"Title: {titleMismatches}: {a}%"); // 67.65% // 61.41%      //51.97% //31.3% //30.71%    //29.72%    //28.74
+//         Debug.Log($"Artist: {artistMismatches}: {b}%"); // 55.22%   // 56.89%      //56.89 //46.26%                     //39.37 //33.07 //32.87 //28.14 //27.36
 
-        Debug.Log("Titles:");
-        foreach (KeyValuePair<int, Theme> kvp in rejectedTitles)
-        {
-            Debug.Log($"    {kvp.Key}");
-        }
+//         Debug.Log("Titles:");
+//         foreach (KeyValuePair<int, Theme> kvp in rejectedTitles)
+//         {
+//             Debug.Log($"    {kvp.Key}");
+//         }
 
-        Debug.Log("Artists:");
-        foreach (KeyValuePair<int, Theme> kvp in rejectedArtists)
-        {
-            Debug.Log($"    {kvp.Key}");
-        }
+//         Debug.Log("Artists:");
+//         foreach (KeyValuePair<int, Theme> kvp in rejectedArtists)
+//         {
+//             Debug.Log($"    {kvp.Key}");
+//         }
 
-        Debug.Log("Both:");
-        foreach (KeyValuePair<int, Theme> kvp in completeRejections)
-        {
-            Debug.Log($"    {kvp.Key}");
-        }
-    }
+//         Debug.Log("Both:");
+//         foreach (KeyValuePair<int, Theme> kvp in completeRejections)
+//         {
+//             Debug.Log($"    {kvp.Key}");
+//         }
+//     }
 }

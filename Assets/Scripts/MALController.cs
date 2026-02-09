@@ -54,17 +54,19 @@ public class MALController : Singleton<MALController>
         }
 
         //
-        foreach (var item in OpeningThemes)
-        {
-            var a = StringManipulator.GetLikelyName(item.Value.SongInfo.MALSongInfo.Titles);
-            var b = StringManipulator.GetLikelyName(item.Value.SongInfo.MALSongInfo.Artists);
+        // foreach (var item in OpeningThemes)
+        // {
+        //     var a = StringManipulator.GetLikelyName(item.Value.SongInfo.MALSongInfo.Titles);
+        //     var b = StringManipulator.GetLikelyName(item.Value.SongInfo.MALSongInfo.Artists);
 
-            item.Value.SongInfo.MALSongInfo.Titles.Insert(0, a["English"]);
-            item.Value.SongInfo.MALSongInfo.Titles.Insert(1, a["Japanese"]);
-            item.Value.SongInfo.MALSongInfo.Artists.Insert(0, b["English"]);
-            item.Value.SongInfo.MALSongInfo.Artists.Insert(1, b["Japanese"]);
-        }
+        //     item.Value.SongInfo.MALSongInfo.Titles.Insert(0, a["English"]);
+        //     item.Value.SongInfo.MALSongInfo.Titles.Insert(1, a["Japanese"]);
+        //     item.Value.SongInfo.MALSongInfo.Artists.Insert(0, b["English"]);
+        //     item.Value.SongInfo.MALSongInfo.Artists.Insert(1, b["Japanese"]);
+        // }
         //
+
+        APIBridge.Instance.PopulateMALInfo(OpeningThemes);
 
         malLoginButton.interactable = false;
         spotifyLoginButton.interactable = true;
@@ -135,7 +137,7 @@ public class MALController : Singleton<MALController>
             {
                 foreach (Theme themeSong in animeDetails.OpeningThemes)
                 {
-                    themeSong.SongInfo = StringManipulator.ExtractSongInfo(themeSong.Text);
+                    //themeSong.SongInfo = StringManipulator.ExtractSongInfo(themeSong.Text);
                     themeSongs.Add(themeSong);
                 }
             }

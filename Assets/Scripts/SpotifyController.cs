@@ -11,7 +11,7 @@ public class SpotifyController : Singleton<SpotifyController>
     [SerializeField] private Button spotifyLoginButton;
     [SerializeField] private string playlistName = "Anime Opening Themes";
 
-    public Dictionary<Theme, SearchResponse> SearchResponses = new();
+    public List<SearchResponse> SearchResponses = new();
 
     private SpotifyClient spotifyClient;
 
@@ -29,9 +29,10 @@ public class SpotifyController : Singleton<SpotifyController>
         MenuController.Instance.UpdateProgressBar(0, currentUser.Id);
         spotifyInputField.text = currentUser.Id;
 
-        if (MALController.Instance.OpeningThemes != null)
+        List<List<string>> queries = APIBridge.Instance.GetQueries();
+        if (queries != null)
         {
-            HashSet<string> uniqueSongUris = await GetUniqueSongUris();
+            HashSet<string> uniqueSongUris = await GetUniqueSongUris(queries);
             //MenuController.Instance.SetMenu(MenuState.Playlist);
             //return;
             List<List<string>> pagedSongUris = SplitIntoBatches(uniqueSongUris, 100);
@@ -50,53 +51,52 @@ public class SpotifyController : Singleton<SpotifyController>
         MenuController.Instance.SetMenu(MenuState.Main);
     }
 
-    private async Task<HashSet<string>> GetUniqueSongUris()
+    private async Task<HashSet<string>> GetUniqueSongUris(List<List<string>> queries)
     {
         SearchResponses = new();
         HashSet<string> uniqueSongUris = new();
         int iteration = 0;
 
-        foreach (KeyValuePair<int, Theme> kvp in MALController.Instance.OpeningThemes)
+        foreach (List<string> queryPair in queries)
         {
             iteration++;
-            string query = kvp.Value.SongInfo.Queries[0];
 
-            if (query != null)
+            foreach (string query in queryPair)
             {
-                MenuController.Instance.UpdateProgressBar((float)iteration / MALController.Instance.OpeningThemes.Count, query);
+                MenuController.Instance.UpdateProgressBar((float)iteration / queries.Count, query);
 
                 SearchRequest searchRequest = new(SearchRequest.Types.Track, query)
                 {
                     Market = "JP",
-                    Limit = 5
+                    Limit = 1
                 };
-                SearchResponses.Add(kvp.Value, await spotifyClient.Search.Item(searchRequest));
+                SearchResponses.Add(await spotifyClient.Search.Item(searchRequest));
             }
         }
 
-        foreach (KeyValuePair<Theme, SearchResponse> kvp in SearchResponses)
+        foreach (SearchResponse searchResponse in SearchResponses)
         {
-            for (int i = 0; i < kvp.Value.Tracks.Items.Count; i++)
+            // for (int i = 0; i < kvp.Value.Tracks.Items.Count; i++)
+            // {
+            //     //uniqueSongUris.Add(kvp.Value.Tracks.Items[i].Uri);
+
+            //     kvp.Key.SongInfo.SpotifySongInfo.Add(new()
+            //     {
+            //         Title = kvp.Value.Tracks.Items[i].Name,
+            //         Artist = kvp.Value.Tracks.Items[i].Artists[0].Name
+            //     });
+
+            //     if (kvp.Value.Tracks.Items[i].LinkedFrom != null)
+            //     {
+            //         kvp.Key.SongInfo.SpotifySongInfo[i].LinkedId = kvp.Value.Tracks.Items[i].LinkedFrom.Id;
+            //     }
+
+            //     Debug.Log($"\"{kvp.Key.SongInfo.SpotifySongInfo[i].Title}\", {kvp.Key.SongInfo.SpotifySongInfo[i].Artist} | \"{kvp.Key.SongInfo.Queries[0]}\"");
+            // }
+
+            if (searchResponse.Tracks.Items.Count > 0)
             {
-                //uniqueSongUris.Add(kvp.Value.Tracks.Items[i].Uri);
-
-                kvp.Key.SongInfo.SpotifySongInfo.Add(new()
-                {
-                    Title = kvp.Value.Tracks.Items[i].Name,
-                    Artist = kvp.Value.Tracks.Items[i].Artists[0].Name
-                });
-
-                if (kvp.Value.Tracks.Items[i].LinkedFrom != null)
-                {
-                    kvp.Key.SongInfo.SpotifySongInfo[i].LinkedId = kvp.Value.Tracks.Items[i].LinkedFrom.Id;
-                }
-
-                Debug.Log($"\"{kvp.Key.SongInfo.SpotifySongInfo[i].Title}\", {kvp.Key.SongInfo.SpotifySongInfo[i].Artist} | \"{kvp.Key.SongInfo.Queries[0]}\"");
-            }
-
-            if (kvp.Value.Tracks.Items.Count > 0)
-            {
-                uniqueSongUris.Add(kvp.Value.Tracks.Items[0].Uri);  // Save only the first query result to include in the playlist
+                uniqueSongUris.Add(searchResponse.Tracks.Items[0].Uri);  // Save only the first query result to include in the playlist
             }
         }
 

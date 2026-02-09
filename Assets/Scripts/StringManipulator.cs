@@ -54,7 +54,6 @@ public class StringManipulator
             string title = cleanedInput[..byIndex].Trim(charactersToTrim);
             string artist = cleanedInput[(byIndex + 4)..].Trim(charactersToTrim);
             //string query;// = "";
-            List<string> queries = new();
 
             // Return SongInfo object with extracted title and artist
             SongInfo songInfo = new()
@@ -64,7 +63,8 @@ public class StringManipulator
                     Titles = SplitString(title),
                     Artists = SplitString(artist)
                 },
-                SpotifySongInfo = new()
+                SpotifySongInfo = new(),
+                Queries = new()
             };
             // SongInfo songInfo = new()
             // {
@@ -83,7 +83,7 @@ public class StringManipulator
 
             for (int i = 0; i < songInfo.MALSongInfo.Titles.Count; i++)
             {
-                string query = $"{songInfo.MALSongInfo.Titles[1]}";
+                string query = $"{songInfo.MALSongInfo.Titles[i]}";
 
                 if (songInfo.MALSongInfo.Artists.Count > i)
                 {

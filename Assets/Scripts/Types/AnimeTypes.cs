@@ -130,27 +130,7 @@ public class Theme
     public int Id { get; set; }
     public int AnimeId { get; set; }
     public string Text { get; set; }
-    public SongInfo SongInfo { get; set; }
-}
-
-public class SongInfo
-{
-    public MALSongInfo MALSongInfo { get; set; }
-    public List<SpotifySongInfo> SpotifySongInfo { get; set; }
-    public List<string> Queries { get; set; }
-}
-
-public class MALSongInfo
-{
-    public List<string> Titles { get; set; }
-    public List<string> Artists { get; set; }
-}
-
-public class SpotifySongInfo
-{
-    public string Title { get; set; }
-    public string Artist { get; set; }
-    public string LinkedId { get; set; }
+    //public SongInfo SongInfo { get; set; }
 }
 
 public class AnimeListResponse

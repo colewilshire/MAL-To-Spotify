@@ -21,32 +21,32 @@ public class PlaylistMenu : Menu
     {
         base.OnMenuStateChange(newState);
         if (newState != ActiveState) { return; }
-        DisplayPlaylist();
+        // DisplayPlaylist();
     }
 
-    public void DisplayPlaylist()//Dictionary<Theme, SearchResponse> searchResponses, int recursion = 0)
-    {
-        // if (recursion > 0)
-        // {
-        //     SpotifyController.Instance.SearchResponses = new();
-        // }
+    // public void DisplayPlaylist()//Dictionary<Theme, SearchResponse> searchResponses, int recursion = 0)
+    // {
+    //     // if (recursion > 0)
+    //     // {
+    //     //     SpotifyController.Instance.SearchResponses = new();
+    //     // }
 
-        if (SpotifyController.Instance.SearchResponses == null) { return; }
+    //     if (SpotifyController.Instance.SearchResponses == null) { return; }
 
-        foreach (KeyValuePair<Theme, SearchResponse> kvp in SpotifyController.Instance.SearchResponses)
-        {
-            SongEntry songEntry = Instantiate(songEntryTemplate);
-            string title = kvp.Value.Tracks.Items[0].Name;
-            string artist = kvp.Value.Tracks.Items[0].Artists[0].Name;
+    //     foreach (KeyValuePair<Theme, SearchResponse> kvp in SpotifyController.Instance.SearchResponses)
+    //     {
+    //         SongEntry songEntry = Instantiate(songEntryTemplate);
+    //         string title = kvp.Value.Tracks.Items[0].Name;
+    //         string artist = kvp.Value.Tracks.Items[0].Artists[0].Name;
 
-            songEntry.name = title;
-            songEntry.Title.text = title;
-            songEntry.Artist.text = artist;
+    //         songEntry.name = title;
+    //         songEntry.Title.text = title;
+    //         songEntry.Artist.text = artist;
 
-            songEntry.transform.SetParent(songEntryTemplate.transform.parent);
-            songEntry.gameObject.SetActive(true);
-        }
-    }
+    //         songEntry.transform.SetParent(songEntryTemplate.transform.parent);
+    //         songEntry.gameObject.SetActive(true);
+    //     }
+    // }
 
     public void ApprovePlaylist()
     {
