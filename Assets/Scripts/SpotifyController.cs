@@ -59,7 +59,7 @@ public class SpotifyController : Singleton<SpotifyController>
         foreach (KeyValuePair<int, Theme> kvp in MALController.Instance.OpeningThemes)
         {
             iteration++;
-            string query = kvp.Value.SongInfo.Query;
+            string query = kvp.Value.SongInfo.Queries[0];
 
             if (query != null)
             {
@@ -68,7 +68,7 @@ public class SpotifyController : Singleton<SpotifyController>
                 SearchRequest searchRequest = new(SearchRequest.Types.Track, query)
                 {
                     Market = "JP",
-                    Limit = 1
+                    Limit = 5
                 };
                 SearchResponses.Add(kvp.Value, await spotifyClient.Search.Item(searchRequest));
             }
@@ -78,7 +78,7 @@ public class SpotifyController : Singleton<SpotifyController>
         {
             for (int i = 0; i < kvp.Value.Tracks.Items.Count; i++)
             {
-                uniqueSongUris.Add(kvp.Value.Tracks.Items[i].Uri);
+                //uniqueSongUris.Add(kvp.Value.Tracks.Items[i].Uri);
 
                 kvp.Key.SongInfo.SpotifySongInfo.Add(new()
                 {
@@ -91,7 +91,12 @@ public class SpotifyController : Singleton<SpotifyController>
                     kvp.Key.SongInfo.SpotifySongInfo[i].LinkedId = kvp.Value.Tracks.Items[i].LinkedFrom.Id;
                 }
 
-                Debug.Log($"\"{kvp.Key.SongInfo.SpotifySongInfo[i].Title}\", {kvp.Key.SongInfo.SpotifySongInfo[i].Artist} | \"{kvp.Key.SongInfo.Query}\"");
+                Debug.Log($"\"{kvp.Key.SongInfo.SpotifySongInfo[i].Title}\", {kvp.Key.SongInfo.SpotifySongInfo[i].Artist} | \"{kvp.Key.SongInfo.Queries[0]}\"");
+            }
+
+            if (kvp.Value.Tracks.Items.Count > 0)
+            {
+                uniqueSongUris.Add(kvp.Value.Tracks.Items[0].Uri);  // Save only the first query result to include in the playlist
             }
         }
 

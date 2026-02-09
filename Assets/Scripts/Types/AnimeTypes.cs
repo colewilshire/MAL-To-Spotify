@@ -137,7 +137,7 @@ public class SongInfo
 {
     public MALSongInfo MALSongInfo { get; set; }
     public List<SpotifySongInfo> SpotifySongInfo { get; set; }
-    public string Query { get; set; }
+    public List<string> Queries { get; set; }
 }
 
 public class MALSongInfo

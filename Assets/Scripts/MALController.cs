@@ -53,6 +53,19 @@ public class MALController : Singleton<MALController>
             SaveUpdatedAt(fullAnimeList);
         }
 
+        //
+        foreach (var item in OpeningThemes)
+        {
+            var a = StringManipulator.GetLikelyName(item.Value.SongInfo.MALSongInfo.Titles);
+            var b = StringManipulator.GetLikelyName(item.Value.SongInfo.MALSongInfo.Artists);
+
+            item.Value.SongInfo.MALSongInfo.Titles.Insert(0, a["English"]);
+            item.Value.SongInfo.MALSongInfo.Titles.Insert(1, a["Japanese"]);
+            item.Value.SongInfo.MALSongInfo.Artists.Insert(0, b["English"]);
+            item.Value.SongInfo.MALSongInfo.Artists.Insert(1, b["Japanese"]);
+        }
+        //
+
         malLoginButton.interactable = false;
         spotifyLoginButton.interactable = true;
 

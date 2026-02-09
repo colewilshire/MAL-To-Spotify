@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using UnityEngine;
 using WanaKanaNet;
+using WanaKanaNet.Helpers;
 
 public class StringManipulator
 {
@@ -38,7 +39,7 @@ public class StringManipulator
         return parts;
     }
 
-    public static SongInfo ExtractSongInfo(string input, string countryCode = "JP")
+    public static SongInfo ExtractSongInfo(string input)
     {
         // Remove initial pattern "#number:" or "#number" and trim
         //string pattern = @"^#\d+:?\s*";
@@ -52,7 +53,8 @@ public class StringManipulator
             char[] charactersToTrim = { ' ', '\t', '\r', '\n', '\v', '\f', '"' };
             string title = cleanedInput[..byIndex].Trim(charactersToTrim);
             string artist = cleanedInput[(byIndex + 4)..].Trim(charactersToTrim);
-            string query;// = "";
+            //string query;// = "";
+            List<string> queries = new();
 
             // Return SongInfo object with extracted title and artist
             SongInfo songInfo = new()
@@ -64,31 +66,113 @@ public class StringManipulator
                 },
                 SpotifySongInfo = new()
             };
+            // SongInfo songInfo = new()
+            // {
+            //     MALSongInfo = new()
+            //     {
+            //         Titles = SplitString(title),
+            //         Artists = SplitString(artist)
+            //     },
+            //     SpotifySongInfo = new()
+            // };
 
             // foreach(string malTitle in songInfo.MALSongInfo.Titles)
             // {
             //     query = $"{query} {malTitle}";
             // }
 
-            if ((countryCode == "JP") && (songInfo.MALSongInfo.Titles.Count > 1))
+            for (int i = 0; i < songInfo.MALSongInfo.Titles.Count; i++)
             {
-                query = $"{songInfo.MALSongInfo.Titles[1]}";
-            }
-            else
-            {
-                query = $"{songInfo.MALSongInfo.Titles[0]}";
+                string query = $"{songInfo.MALSongInfo.Titles[1]}";
+
+                if (songInfo.MALSongInfo.Artists.Count > i)
+                {
+                    query = $"{query} {songInfo.MALSongInfo.Artists[i]}";
+                }
+                else
+                {
+                    query = $"{query} {songInfo.MALSongInfo.Artists[0]}";
+                }
+
+                songInfo.Queries.Add(query);
             }
 
-            query = $"{query} {songInfo.MALSongInfo.Artists[0]}";
-            Debug.Log("a");
-            songInfo.Query = query;
-            Debug.Log("b");
+            // if ((countryCode == "JP") && (songInfo.MALSongInfo.Titles.Count > 1))
+            // {
+            //     query = $"{songInfo.MALSongInfo.Titles[1]}";
+            // }
+            // else
+            // {
+            //     query = $"{songInfo.MALSongInfo.Titles[0]}";
+            // }
+
+            //query = $"{query} {songInfo.MALSongInfo.Artists[0]}";
+            //songInfo.Queries.Add(query);
 
             return songInfo;
         }
 
         // Return null if the string does not match the expected format
         return null;
+    }
+
+    // Assume the first name with kana or kanji is the Japanese name, and the first name written in romaji is the English name
+    public static Dictionary<string, string> GetLikelyName(List<string> nameList)
+    {
+        Dictionary<string, string> likelyNames = new()
+        {
+            ["English"] = null,
+            ["Japanese"] = null
+        };
+
+        for (int i = 0; i < nameList.Count; i++)
+        {
+            if (likelyNames["Japanese"] != null && likelyNames["English"] != null)
+            {
+                break;
+            }
+            else if (likelyNames["Japanese"] == null && WanaKana.IsJapanese(nameList[i]))
+            {
+                likelyNames["Japanese"] = nameList[i];
+            }
+            else if (likelyNames["English"] == null && WanaKana.IsRomaji(nameList[i]))
+            {
+                likelyNames["English"] = nameList[i];
+            }
+        }
+
+        Debug.Log($"English: {likelyNames["English"]}, Japanese: {likelyNames["Japanese"]}");
+
+        return likelyNames;
+    }
+
+    public static void GetBestResponse(string malTitle, String malArtist, string spotifyTitle, String spotifyArtist)
+    {
+        bool titleMatch = false;
+        bool artistMatch = false;
+
+        // Perfect match
+        if (malTitle == spotifyTitle)
+        {
+            titleMatch = true;
+        }
+
+        if (malArtist == spotifyArtist)
+        {
+            artistMatch = true;
+        }
+
+        // We have no way to translate kanji, so assume it is a good output
+        if (WanaKana.IsKanji(spotifyTitle))
+        {
+            titleMatch = true;
+        }
+
+        // We have no way to translate kanji, so assume it is a good output
+        if (WanaKana.IsKanji(spotifyArtist))
+        {
+            artistMatch = true;
+        }
     }
 
     public static string ProcessString(string str)
