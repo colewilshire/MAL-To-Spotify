@@ -33,8 +33,6 @@ public class SpotifyController : Singleton<SpotifyController>
         if (queries != null)
         {
             HashSet<string> uniqueSongUris = await GetUniqueSongUris(queries);
-            //MenuController.Instance.SetMenu(MenuState.Playlist);
-            //return;
             List<List<string>> pagedSongUris = SplitIntoBatches(uniqueSongUris, 100);
             PlaylistCreateRequest playlistCreateRequest = new(playlistName);
             FullPlaylist playlist = await spotifyClient.Playlists.Create(currentUser.Id, playlistCreateRequest);
@@ -76,24 +74,6 @@ public class SpotifyController : Singleton<SpotifyController>
 
         foreach (SearchResponse searchResponse in SearchResponses)
         {
-            // for (int i = 0; i < kvp.Value.Tracks.Items.Count; i++)
-            // {
-            //     //uniqueSongUris.Add(kvp.Value.Tracks.Items[i].Uri);
-
-            //     kvp.Key.SongInfo.SpotifySongInfo.Add(new()
-            //     {
-            //         Title = kvp.Value.Tracks.Items[i].Name,
-            //         Artist = kvp.Value.Tracks.Items[i].Artists[0].Name
-            //     });
-
-            //     if (kvp.Value.Tracks.Items[i].LinkedFrom != null)
-            //     {
-            //         kvp.Key.SongInfo.SpotifySongInfo[i].LinkedId = kvp.Value.Tracks.Items[i].LinkedFrom.Id;
-            //     }
-
-            //     Debug.Log($"\"{kvp.Key.SongInfo.SpotifySongInfo[i].Title}\", {kvp.Key.SongInfo.SpotifySongInfo[i].Artist} | \"{kvp.Key.SongInfo.Queries[0]}\"");
-            // }
-
             if (searchResponse.Tracks.Items.Count > 0)
             {
                 uniqueSongUris.Add(searchResponse.Tracks.Items[0].Uri);  // Save only the first query result to include in the playlist

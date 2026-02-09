@@ -53,7 +53,6 @@ public class StringManipulator
             char[] charactersToTrim = { ' ', '\t', '\r', '\n', '\v', '\f', '"' };
             string title = cleanedInput[..byIndex].Trim(charactersToTrim);
             string artist = cleanedInput[(byIndex + 4)..].Trim(charactersToTrim);
-            //string query;// = "";
 
             // Return SongInfo object with extracted title and artist
             SongInfo songInfo = new()
@@ -66,20 +65,6 @@ public class StringManipulator
                 SpotifySongInfo = new(),
                 Queries = new()
             };
-            // SongInfo songInfo = new()
-            // {
-            //     MALSongInfo = new()
-            //     {
-            //         Titles = SplitString(title),
-            //         Artists = SplitString(artist)
-            //     },
-            //     SpotifySongInfo = new()
-            // };
-
-            // foreach(string malTitle in songInfo.MALSongInfo.Titles)
-            // {
-            //     query = $"{query} {malTitle}";
-            // }
 
             for (int i = 0; i < songInfo.MALSongInfo.Titles.Count; i++)
             {
@@ -96,18 +81,6 @@ public class StringManipulator
 
                 songInfo.Queries.Add(query);
             }
-
-            // if ((countryCode == "JP") && (songInfo.MALSongInfo.Titles.Count > 1))
-            // {
-            //     query = $"{songInfo.MALSongInfo.Titles[1]}";
-            // }
-            // else
-            // {
-            //     query = $"{songInfo.MALSongInfo.Titles[0]}";
-            // }
-
-            //query = $"{query} {songInfo.MALSongInfo.Artists[0]}";
-            //songInfo.Queries.Add(query);
 
             return songInfo;
         }
@@ -146,43 +119,41 @@ public class StringManipulator
         return likelyNames;
     }
 
-    public static void GetBestResponse(string malTitle, String malArtist, string spotifyTitle, String spotifyArtist)
-    {
-        bool titleMatch = false;
-        bool artistMatch = false;
+    // public static void GetBestResponse(string malTitle, String malArtist, string spotifyTitle, String spotifyArtist)
+    // {
+    //     bool titleMatch = false;
+    //     bool artistMatch = false;
 
-        // Perfect match
-        if (malTitle == spotifyTitle)
-        {
-            titleMatch = true;
-        }
+    //     // Perfect match
+    //     if (malTitle == spotifyTitle)
+    //     {
+    //         titleMatch = true;
+    //     }
 
-        if (malArtist == spotifyArtist)
-        {
-            artistMatch = true;
-        }
+    //     if (malArtist == spotifyArtist)
+    //     {
+    //         artistMatch = true;
+    //     }
 
-        // We have no way to translate kanji, so assume it is a good output
-        if (WanaKana.IsKanji(spotifyTitle))
-        {
-            titleMatch = true;
-        }
+    //     // We have no way to translate kanji, so assume it is a good output
+    //     if (WanaKana.IsKanji(spotifyTitle))
+    //     {
+    //         titleMatch = true;
+    //     }
 
-        // We have no way to translate kanji, so assume it is a good output
-        if (WanaKana.IsKanji(spotifyArtist))
-        {
-            artistMatch = true;
-        }
-    }
+    //     // We have no way to translate kanji, so assume it is a good output
+    //     if (WanaKana.IsKanji(spotifyArtist))
+    //     {
+    //         artistMatch = true;
+    //     }
+    // }
 
     public static string ProcessString(string str)
     {
-        //
         if (str == null)
         {
             return null;
         }
-        //
 
         string pattern = @"[^a-zA-Z0-9\u3040-\u30FF\u4E00-\u9FAF]";
 
@@ -191,12 +162,10 @@ public class StringManipulator
 
     public static bool CompareStrings(string str1, string str2)
     {
-        //
         if (str1 == null || str2 == null)
         {
             return false;
         }
-        //
 
         return str1.Contains(str2) || str2.Contains(str1);
     }

@@ -53,25 +53,11 @@ public class MALController : Singleton<MALController>
             SaveUpdatedAt(fullAnimeList);
         }
 
-        //
-        // foreach (var item in OpeningThemes)
-        // {
-        //     var a = StringManipulator.GetLikelyName(item.Value.SongInfo.MALSongInfo.Titles);
-        //     var b = StringManipulator.GetLikelyName(item.Value.SongInfo.MALSongInfo.Artists);
-
-        //     item.Value.SongInfo.MALSongInfo.Titles.Insert(0, a["English"]);
-        //     item.Value.SongInfo.MALSongInfo.Titles.Insert(1, a["Japanese"]);
-        //     item.Value.SongInfo.MALSongInfo.Artists.Insert(0, b["English"]);
-        //     item.Value.SongInfo.MALSongInfo.Artists.Insert(1, b["Japanese"]);
-        // }
-        //
-
         APIBridge.Instance.PopulateMALInfo(OpeningThemes);
+        MenuController.Instance.SetMenu(MenuState.Main);
 
         malLoginButton.interactable = false;
         spotifyLoginButton.interactable = true;
-
-        MenuController.Instance.SetMenu(MenuState.Main);
     }
 
     public async Task<AnimeListResponse> GetAnimeListAsync(string nextPageUrl = null)
@@ -137,7 +123,6 @@ public class MALController : Singleton<MALController>
             {
                 foreach (Theme themeSong in animeDetails.OpeningThemes)
                 {
-                    //themeSong.SongInfo = StringManipulator.ExtractSongInfo(themeSong.Text);
                     themeSongs.Add(themeSong);
                 }
             }
